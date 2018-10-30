@@ -1,0 +1,886 @@
+package com.wgb.controller.mt.pay;
+
+import com.alibaba.dubbo.common.utils.IOUtils;
+import com.wgb.bean.ZLResult;
+import com.wgb.controller.mt.MTBaseController;
+import com.wgb.dubbo.ZLRpcResult;
+import com.wgb.exception.ServiceException;
+import com.wgb.service.dubbo.pays.web.ApiWxPayService;
+import com.wgb.service.dubbo.pays.web.ApitWxPayService;
+import com.wgb.util.Contants;
+import com.wgb.util.PayCommonUtil;
+import net.sf.json.JSONObject;
+import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang.StringUtils;
+import org.jdom.JDOMException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.*;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.util.*;
+
+/**
+ * Created by sjk on 2018/5/11.
+ */
+@Controller
+@RequestMapping("/system/wxpay/")
+public class MTWxPayController extends MTBaseController {
+    public static final Logger logger = LoggerFactory.getLogger(MTWxPayController.class);
+    @Autowired
+    private ApitWxPayService apitWxPayService;
+
+    @Autowired
+    private ApiWxPayService apiWxPayService;
+
+    /**
+     * 收银端 生成 二维码用户扫码支付
+     * @param request
+     * @return
+     */
+    @RequestMapping("/prePay")
+    @ResponseBody
+    public ZLResult prePay(HttpServletRequest request) {
+
+        Map<String, Object> params = getParams();
+        String shopcode = MapUtils.getString(params, "shopcode");
+        String payamount = MapUtils.getString(params, "payamount");//支付金额
+        String isbranchpay = MapUtils.getString(params, "isbranchpay");//是否獨立支付
+
+        if (StringUtils.isEmpty(shopcode)) {
+            throw new ServiceException(ServiceException.PARAM_MISSING);
+        }
+        if (StringUtils.isEmpty(payamount)) {
+            throw new ServiceException(ServiceException.PARAM_MISSING);
+        }
+        if (StringUtils.isEmpty(isbranchpay)) {
+            throw new ServiceException(ServiceException.PARAM_MISSING);
+        }
+
+        params.put("businessorigin", Contants.API_CLIENT_SALE_PAY);
+
+        // 生成预订单
+        ZLRpcResult zlRpcResult = null;
+        try {
+            zlRpcResult = apiWxPayService.scanPay2Shop(params);
+        } catch (Exception ex) {
+            throw new ServiceException(ServiceException.SYS_ERROR);
+        }
+
+        //判断返回结果
+        if(!zlRpcResult.success()){
+            throw  new ServiceException(zlRpcResult.getErrorMsg());
+        }
+
+        return ZLResult.Success(zlRpcResult.getData());
+    }
+
+    /**
+     * 商户 扫码枪 收款
+     * @param request
+     * @return
+     */
+    @RequestMapping("/microPay")
+    @ResponseBody
+    public ZLResult microPay(HttpServletRequest request) {
+        Map<String, Object> params = getParams();
+        String shopcode = MapUtils.getString(params, "shopcode");
+        String payamount = MapUtils.getString(params, "payamount");//支付金额
+        String auth_code = MapUtils.getString(params, "auth_code");//卡号
+        String isbranchpay = MapUtils.getString(params, "isbranchpay");//是否獨立支付
+
+        if (StringUtils.isEmpty(shopcode)) {
+            throw new ServiceException(ServiceException.PARAM_MISSING);
+        }
+        if (StringUtils.isEmpty(payamount)) {
+            throw new ServiceException(ServiceException.PARAM_MISSING);
+        }
+        if (StringUtils.isEmpty(auth_code)) {
+            throw new ServiceException(ServiceException.PARAM_MISSING);
+        }
+        if (StringUtils.isEmpty(isbranchpay)) {
+            throw new ServiceException(ServiceException.PARAM_MISSING);
+        }
+
+        params.put("businessorigin", Contants.API_CLIENT_SALE_PAY);
+
+        // 生成预订单
+        ZLRpcResult zlRpcResult = null;
+        try {
+            zlRpcResult = apiWxPayService.microPay2Shop(params);
+        } catch (Exception ex) {
+            throw new ServiceException(ServiceException.SYS_ERROR);
+        }
+        //判断返回结果
+        if(!zlRpcResult.success()){
+            throw  new ServiceException(zlRpcResult.getErrorMsg());
+        }
+
+        return ZLResult.Success(zlRpcResult.getData());
+    }
+
+    /**
+     * 查询订单支付状态-    查询的是内部系统 支付订单状态
+     * @param request
+     * @return
+     */
+    @RequestMapping("/queryPayResults")
+    @ResponseBody
+    public ZLResult queryPayResults(HttpServletRequest request) {
+        Map<String, Object> params = getParams();
+        String shopcode = MapUtils.getString(params, "shopcode");
+        String ordercode = MapUtils.getString(params, "ordercode");//销售单号
+        String paytypecode = MapUtils.getString(params, "paytypecode");//销售单号
+        String isbranchpay = MapUtils.getString(params, "isbranchpay");//是否獨立支付
+
+        if (StringUtils.isEmpty(shopcode)) {
+            throw new ServiceException(ServiceException.PARAM_MISSING);
+        }
+        if (StringUtils.isEmpty(ordercode)) {
+            throw new ServiceException(ServiceException.PARAM_MISSING);
+        }
+        if (StringUtils.isEmpty(paytypecode)) {
+            throw new ServiceException(ServiceException.PARAM_MISSING);
+        }
+        if (StringUtils.isEmpty(isbranchpay)) {
+            throw new ServiceException(ServiceException.PARAM_MISSING);
+        }
+
+
+        // 生成预订单
+        ZLRpcResult zlRpcResult = null;
+        try {
+            zlRpcResult = apiWxPayService.queryPayResult(params);
+        } catch (Exception ex) {
+            throw new ServiceException(ServiceException.SYS_ERROR);
+        }
+        //判断返回结果
+        if(!zlRpcResult.success()){
+            throw  new ServiceException(zlRpcResult.getErrorMsg());
+        }
+
+        return ZLResult.Success(zlRpcResult.getData());
+    }
+
+    /**
+     * 收银端刷卡支付  -- 调用 微信接口实时查询 订单支付状态
+     * @param request
+     * @return
+     */
+    @RequestMapping("/queryMicroPayResult")
+    @ResponseBody
+    public ZLResult queryMicroPayResult(HttpServletRequest request) {
+        Map<String, Object> params = getParams();
+        String shopcode = MapUtils.getString(params, "shopcode");
+        String ordercode = MapUtils.getString(params, "ordercode");//销售单号
+        String isbranchpay = MapUtils.getString(params, "isbranchpay");//是否獨立支付
+
+        if (StringUtils.isEmpty(shopcode)) {
+            throw new ServiceException(ServiceException.PARAM_MISSING);
+        }
+        if (StringUtils.isEmpty(ordercode)) {
+            throw new ServiceException(ServiceException.PARAM_MISSING);
+        }
+        if (StringUtils.isEmpty(isbranchpay)) {
+            throw new ServiceException(ServiceException.PARAM_MISSING);
+        }
+
+        ZLRpcResult zlRpcResult = null;
+        try {
+            zlRpcResult = apiWxPayService.queryMicroPayResult(params);
+        } catch (Exception ex) {
+            throw new ServiceException(ServiceException.SYS_ERROR);
+        }
+        //判断返回结果
+        if(!zlRpcResult.success()){
+            throw  new ServiceException(zlRpcResult.getErrorMsg());
+        }
+
+        return ZLResult.Success(zlRpcResult.getData());
+    }
+
+    /**
+     * 收银端刷卡支付  -- 调用 微信接口实时查询 订单支付状态
+     * @param request
+     * @return
+     */
+    @RequestMapping("/queryWxPayResultOfApi")
+    @ResponseBody
+    public ZLResult queryWxPayResultOfApi(HttpServletRequest request) {
+        Map<String, Object> params = getParams();
+        String shopcode = MapUtils.getString(params, "shopcode");
+        String apiordercode = MapUtils.getString(params, "apiordercode");//收银唯一单号
+        String isbranchpay = MapUtils.getString(params, "isbranchpay");//是否独立支付
+
+        if (StringUtils.isEmpty(shopcode)) {
+            throw new ServiceException(ServiceException.PARAM_MISSING);
+        }
+        if (StringUtils.isEmpty(apiordercode)) {
+            throw new ServiceException(ServiceException.PARAM_MISSING);
+        }
+        if (StringUtils.isEmpty(isbranchpay)) {
+            throw new ServiceException(ServiceException.PARAM_MISSING);
+        }
+
+        ZLRpcResult zlRpcResult = null;
+        try {
+            zlRpcResult = apiWxPayService.queryWxPayResultOfApi(params);
+        } catch (Exception ex) {
+            throw new ServiceException(ServiceException.SYS_ERROR);
+        }
+        //判断返回结果
+        if(!zlRpcResult.success()){
+            throw  new ServiceException(zlRpcResult.getErrorMsg());
+        }
+
+        return ZLResult.Success(zlRpcResult.getData());
+    }
+
+    /**
+     * 商户后台 返回二维码扫码支付
+     *
+     * @param request
+     * @return
+     */
+
+    @RequestMapping("entry/scanPay2Self")
+    public String addBrand(HttpServletRequest request) {
+        Map<String, Object> params = getParams();
+
+        //定义返回对象
+        ZLRpcResult zlRpcResult = new ZLRpcResult();
+
+        //校验参数
+        checkAddBrandParams(params);
+
+        try {
+
+            //系统调用
+            zlRpcResult = apitWxPayService.scanPay2Self(params);
+
+        } catch (Exception ex) {
+
+            //系统级别异常
+            throw new ServiceException(ServiceException.SYS_ERROR);
+        }
+
+        //判断返回结果
+        if (!zlRpcResult.success()) {
+
+            throw new ServiceException(zlRpcResult.getErrorMsg());
+        }
+        Map<String, Object> result = zlRpcResult.getMap();
+
+        request.setAttribute("ordercode", MapUtils.getString(result, "ordercode"));
+        request.setAttribute("codeurl", MapUtils.getString(result, "codeUrl"));
+        request.setAttribute("payamount", MapUtils.getString(result, "payamount"));
+        request.setAttribute("businessorigin", MapUtils.getString(result, "businessorigin"));
+        request.setAttribute("servercode", MapUtils.getString(result, "servercode"));
+        return "wx_cashier";
+    }
+
+    /**
+     * 服务商系统支付调用   返回二维码支付页面
+     *
+     * @param request
+     * @param
+     */
+    @RequestMapping("/entry/scanPay2SelfForServer")
+    public String scanPay2SelfForServer(HttpServletRequest request) {
+        Map<String, Object> params = getParams();
+        //定义返回对象
+        ZLRpcResult zlRpcResult = new ZLRpcResult();
+
+        //校验参数
+        checkAddBrandParams(params);
+
+        try {
+
+            //系统调用
+            zlRpcResult = apitWxPayService.scanPay2SelfForServer(params);
+
+        } catch (Exception ex) {
+
+            //系统级别异常
+            throw new ServiceException(ServiceException.SYS_ERROR);
+        }
+
+        //判断返回结果
+        if (!zlRpcResult.success()) {
+
+            throw new ServiceException(zlRpcResult.getErrorMsg());
+        }
+        Map<String, Object> result = zlRpcResult.getMap();
+
+        request.setAttribute("ordercode", MapUtils.getString(result, "ordercode"));
+        request.setAttribute("codeurl", MapUtils.getString(result, "codeUrl"));
+        request.setAttribute("payamount", MapUtils.getString(result, "payamount"));
+        request.setAttribute("businessorigin", MapUtils.getString(result, "businessorigin"));
+        request.setAttribute("servercode", MapUtils.getString(result, "servercode"));
+
+        return "wx_cashier";
+    }
+
+    /***
+     * 回调支付结果更新支付订单表状态
+     *
+     * @param request
+     * @param response
+     * @throws Exception
+     */
+    @RequestMapping("/entry/notify_url")
+    @ResponseBody
+    public void notify_url(HttpServletRequest request, HttpServletResponse response) throws Exception {
+        //读取参数
+        InputStream inputStream;
+        StringBuffer sb = new StringBuffer();
+        inputStream = request.getInputStream();
+        String s;
+        BufferedReader in = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
+        while ((s = in.readLine()) != null) {
+            sb.append(s);
+        }
+        in.close();
+        inputStream.close();
+
+        //解析xml成map
+        Map<String, String> m = new HashMap<String, String>();
+        m = PayCommonUtil.doXMLParse(sb.toString());
+
+        //过滤空 设置 TreeMap
+        SortedMap<Object, Object> packageParams = new TreeMap<Object, Object>();
+        Iterator it = m.keySet().iterator();
+        while (it.hasNext()) {
+            String parameter = (String) it.next();
+            String parameterValue = m.get(parameter);
+
+            String v = "";
+            if (null != parameterValue) {
+                v = parameterValue.trim();
+            }
+            packageParams.put(parameter, v);
+        }
+
+        logger.info("支付回调参数：" + packageParams);
+
+        //判断签名是否正确
+        if (PayCommonUtil.isTenpaySign("UTF-8", packageParams)) {
+            String resXml = "";
+            if ("SUCCESS".equals((String) packageParams.get("result_code"))) {
+                Map<String,Object> params=new HashMap<String, Object>();
+                params.put("mch_id",(String) packageParams.get("mch_id"));
+                params.put("openid",(String) packageParams.get("openid"));
+                params.put("sub_openid",(String) packageParams.get("sub_openid"));
+                params.put("is_subscribe",(String) packageParams.get("is_subscribe"));
+                params.put("out_trade_no",(String) packageParams.get("out_trade_no"));
+                params.put("transaction_id",(String) packageParams.get("transaction_id"));
+                params.put("total_fee",(String) packageParams.get("total_fee"));
+                params.put("trade_type",(String) packageParams.get("trade_type"));
+
+                params.put("wxopenid",(String) packageParams.get("openid"));
+                params.put("banktype",(String) packageParams.get("bank_type"));
+                params.put("finishtime",(String) packageParams.get("time_end"));
+                params.put("deviceinfo",(String) packageParams.get("device_info"));
+                try {
+                    //执行业务数据逻辑
+                    ZLRpcResult result= apitWxPayService.updateOrderStatus(params);
+
+                    logger.info("支付通知成功");
+                    //通知微信.异步确认成功.必写.不然会一直通知后台.八次之后就认为交易失败了.
+                    resXml = "<xml>" + "<return_code><![CDATA[SUCCESS]]></return_code>"
+                            + "<return_msg><![CDATA[OK]]></return_msg>" + "</xml> ";
+
+                } catch (Exception ex) {
+                    logger.info("支付失败,错误信息："  + "EXCEPTION" + ex + packageParams.get("err_code"));
+                    resXml = "<xml>" + "<return_code><![CDATA[FAIL]]></return_code>"
+                            + "<return_msg><![CDATA[业务数据处理异常]]></return_msg>" + "</xml> ";
+                }
+
+            } else {
+                logger.info("支付失败,错误信息1----------：" + packageParams.get("err_code---"));
+                resXml = "<xml>" + "<return_code><![CDATA[FAIL]]></return_code>"
+                        + "<return_msg><![CDATA[报文为空]]></return_msg>" + "</xml> ";
+            }
+            //------------------------------
+            //处理业务完毕
+            //------------------------------
+            BufferedOutputStream out = new BufferedOutputStream(
+                    response.getOutputStream());
+            out.write(resXml.getBytes());
+            out.flush();
+            out.close();
+        } else {
+            logger.info("通知签名验证失败");
+        }
+    }
+
+    /**
+     * 查询订单支付状态 ---查询 内部支付系统订单状态
+     *
+     * @param request
+     * @return
+     */
+    @RequestMapping("/entry/queryPayResult")
+    @ResponseBody
+    public ZLResult queryPayResult(HttpServletRequest request) {
+        Map<String, Object> params = getParams();
+        ZLRpcResult zlRpcResult = new ZLRpcResult();
+        String ordercode = MapUtils.getString(params, "ordercode");
+
+        try {
+            //系统调用
+            zlRpcResult = apitWxPayService.queryPayResult(ordercode);
+        } catch (Exception ex) {
+            //系统级别异常
+            throw new ServiceException(ServiceException.SYS_ERROR);
+        }
+        //判断返回结果
+        if (!zlRpcResult.success()) {
+            throw new ServiceException(zlRpcResult.getErrorMsg());
+        }
+        logger.info("微信商户后台订单支付状态："+ zlRpcResult.getData());
+
+        return  ZLResult.Success(zlRpcResult.getData());
+    }
+
+    /**
+     * 微信内支付--公众号支付
+     *
+     * @param request
+     * @return
+     */
+    @RequestMapping("/entry/innerPay2Shop")
+    @ResponseBody
+    public  Map<String,Object> innerPay2Shop(HttpServletRequest request) {
+
+        //获取入参数据
+        Map<String, Object> params = getParams();
+
+        //定义返回对象
+        ZLRpcResult zlRpcResult = new ZLRpcResult();
+
+        //校验参数
+        checkInnerPayParams(params);
+
+        try {
+            //系统调用
+            zlRpcResult = apitWxPayService.innerPay2Shop(params);
+
+        } catch (Exception ex) {
+
+            //系统级别异常
+            throw new ServiceException(ServiceException.SYS_ERROR);
+        }
+
+        //判断返回结果
+        if (!zlRpcResult.success()) {
+
+            throw new ServiceException(zlRpcResult.getErrorMsg());
+        }
+        Map<String,Object> payMap= (Map<String, Object>) zlRpcResult.getData();
+
+        return payMap;
+    }
+
+
+    /**
+     * 微信支付--小程序支付
+     *
+     * @param request
+     * @return
+     */
+    @RequestMapping("/entry/xiaochengxu")
+    @ResponseBody
+    public Object applet(HttpServletRequest request) throws IOException {
+
+        BufferedReader reader = new BufferedReader(new InputStreamReader(request.getInputStream()));
+        String body = IOUtils.read(reader);
+        JSONObject jasonObject = JSONObject.fromObject(body);
+        Map params = (Map)jasonObject;
+
+        //定义返回对象
+        ZLRpcResult zlRpcResult = new ZLRpcResult();
+
+        try {
+            //系统调用
+            zlRpcResult = apitWxPayService.applet(params);
+
+        } catch (Exception ex) {
+
+            //系统级别异常
+            throw new ServiceException(ServiceException.SYS_ERROR);
+        }
+
+        //判断返回结果
+        if (!zlRpcResult.success()) {
+
+            throw new ServiceException(zlRpcResult.getErrorMsg());
+        }
+
+        return zlRpcResult.getData();
+    }
+
+    /**
+     * 微信支付成功回调
+     *
+     * @param request
+     * @param response
+     * @throws Exception
+     */
+    @RequestMapping("/entry/callback")
+    @ResponseBody
+    public void callback(HttpServletRequest request, HttpServletResponse response) throws Exception {
+        ZLRpcResult zlRpcResult = new ZLRpcResult();
+        //读取参数
+        InputStream inputStream;
+        StringBuffer sb = new StringBuffer();
+        inputStream = request.getInputStream();
+        String s;
+        BufferedReader in = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
+        while ((s = in.readLine()) != null) {
+            sb.append(s);
+        }
+        in.close();
+        inputStream.close();
+
+        //解析xml成map
+        Map<String, String> m = new HashMap<String, String>();
+        m = PayCommonUtil.doXMLParse(sb.toString());
+
+        //过滤空 设置 TreeMap
+        SortedMap<Object, Object> packageParams = new TreeMap<Object, Object>();
+        Iterator it = m.keySet().iterator();
+        while (it.hasNext()) {
+            String parameter = (String) it.next();
+            String parameterValue = m.get(parameter);
+
+            String v = "";
+            if (null != parameterValue) {
+                v = parameterValue.trim();
+            }
+            packageParams.put(parameter, v);
+        }
+        logger.info("支付回调参数：" + packageParams);
+        //判断签名是否正确
+        if (PayCommonUtil.isTenpaySign("UTF-8", packageParams)) {
+            String resXml = "";
+            if ("SUCCESS".equals((String) packageParams.get("result_code"))) {
+                String out_trade_no = (String) packageParams.get("out_trade_no");
+                //////////执行自己的业务逻辑////////////////
+                try {
+                    String[] noArr = out_trade_no.split("_");
+                    String shopcode = noArr[0];
+                    String ordercode = noArr[1];
+                    Map<String, Object> params = new HashMap<String, Object>();
+                    params.put("shopcode", shopcode);
+                    params.put("ordercode", ordercode);
+                    params.put("orderstatus", Contants.ORDER_STATUS_PAID);
+                    try {
+                        //系统调用
+                        zlRpcResult = apitWxPayService.callback(params);
+                    } catch (Exception ex) {
+                        //系统级别异常
+                        throw new ServiceException(ServiceException.SYS_ERROR);
+                    }
+                    logger.info("支付成功");
+                    //通知微信.异步确认成功.必写.不然会一直通知后台.八次之后就认为交易失败了.
+                    resXml = "<xml>" + "<return_code><![CDATA[SUCCESS]]></return_code>"
+                            + "<return_msg><![CDATA[OK]]></return_msg>" + "</xml> ";
+
+                } catch (Exception ex) {
+                    logger.info("支付失败,错误信息：" + packageParams.get("err_code"));
+                    resXml = "<xml>" + "<return_code><![CDATA[FAIL]]></return_code>"
+                            + "<return_msg><![CDATA[业务数据处理异常]]></return_msg>" + "</xml> ";
+                }
+
+            } else {
+                logger.info("支付失败,错误信息：" + packageParams.get("err_code"));
+                resXml = "<xml>" + "<return_code><![CDATA[FAIL]]></return_code>"
+                        + "<return_msg><![CDATA[报文为空]]></return_msg>" + "</xml> ";
+            }
+            //处理业务完毕
+            BufferedOutputStream out = new BufferedOutputStream(
+                    response.getOutputStream());
+            out.write(resXml.getBytes());
+            out.flush();
+            out.close();
+        } else {
+            logger.info("通知签名验证失败");
+        }
+    }
+
+    /**
+     * 根据订单号-在线调用微信接口查询--查询订单支付状态
+     *
+     * @param request
+     * @return
+     */
+    @RequestMapping("/entry/queryOrderStatus")
+    @ResponseBody
+    public ZLResult queryOrderStatus(HttpServletRequest request) {
+        Map<String, Object> params = getParams();
+        Map<String, Object> data = new HashMap<String, Object>();
+        ZLRpcResult zlRpcResult = new ZLRpcResult();
+
+        //商户订单号
+        String out_trade_no = MapUtils.getString(params, "ordercode");
+        if (StringUtils.isEmpty(out_trade_no)) {
+            throw new ServiceException("查询订单号不能为空！");
+        }
+        try {
+            //系统调用
+            zlRpcResult = apitWxPayService.queryOrderStatus(params);
+        } catch (Exception ex) {
+            //系统级别异常
+            throw new ServiceException(ServiceException.SYS_ERROR);
+        }
+
+        //判断返回结果
+        if (!zlRpcResult.success()) {
+            throw new ServiceException(zlRpcResult.getErrorMsg());
+        }
+        return ZLResult.Success(zlRpcResult.getData());
+
+    }
+
+    /**
+     * 根据订单号-在线调用微信接口查询--查询订单支付状态
+     *
+     * @param request
+     * @return
+     */
+    @RequestMapping("/entry/queryOrder")
+    @ResponseBody
+    public ZLResult queryOrder(HttpServletRequest request) {
+        Map<String, Object> params = getParams();
+        Map<String, Object> data = new HashMap<String, Object>();
+        ZLRpcResult zlRpcResult = new ZLRpcResult();
+
+        //商户订单号
+        String out_trade_no = MapUtils.getString(params, " ");
+        if (StringUtils.isEmpty(out_trade_no)) {
+            throw new ServiceException("查询订单号不能为空！");
+        }
+        try {
+            //系统调用
+            zlRpcResult = apitWxPayService.queryOrder(params);
+        } catch (Exception ex) {
+            //系统级别异常
+            throw new ServiceException(ServiceException.SYS_ERROR);
+        }
+
+        //判断返回结果
+        if (!zlRpcResult.success()) {
+            throw new ServiceException(zlRpcResult.getErrorMsg());
+        }
+
+        return ZLResult.Success(zlRpcResult.getData());
+
+    }
+
+    /**
+     * 退款通知--- 回調更新订单状态， 包括  收银端 +  微信商城
+     *
+     * @param request
+     * @return
+     */
+    @RequestMapping("/entry/refundnotify")
+    @ResponseBody
+    private void refundnotify(HttpServletRequest request,HttpServletResponse response) throws IOException, JDOMException, NoSuchPaddingException, NoSuchAlgorithmException, NoSuchProviderException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
+
+        logger.info("收银端/微信商城---退款通知回调----");
+
+        //接收微信退款通知的数据流
+        InputStream inStream = request.getInputStream();
+        ByteArrayOutputStream outSteam = new ByteArrayOutputStream();
+        byte[] buffer = new byte[1024];
+        int len = 0;
+        while ((len = inStream.read(buffer)) != -1) {
+            outSteam.write(buffer, 0, len);
+        }
+        outSteam.close();
+        inStream.close();
+        //微信退款通知返回串
+        String resultStr = new String(outSteam.toByteArray(), "utf-8");
+        //将返回串转换成 Map
+        Map<String, String> xmlToMap = PayCommonUtil.doXMLParse(resultStr);
+
+        ZLRpcResult zlRpcResult = null;
+        try {
+            zlRpcResult= apitWxPayService.refundnotify(xmlToMap);
+        } catch (Exception ex) {
+            throw new ServiceException(ServiceException.SYS_ERROR);
+        }
+        //判断返回结果
+        if(!zlRpcResult.success()){
+            logger.info(zlRpcResult.getErrorMsg()+"---退款回调通知失败参数"+xmlToMap);
+            throw new ServiceException(zlRpcResult.getErrorMsg());
+        }
+        logger.info("退款通知成功");
+
+        //通知微信.异步确认成功.必写.不然会一直通知后台.八次之后就认为交易失败了.
+        String resXml = "<xml>" + "<return_code><![CDATA[SUCCESS]]></return_code>"
+                + "<return_msg><![CDATA[OK]]></return_msg>" + "</xml> ";
+
+        //处理业务完毕
+        BufferedOutputStream out = new BufferedOutputStream(
+                response.getOutputStream());
+        out.write(resXml.getBytes());
+        out.flush();
+        out.close();
+    }
+
+    /**
+     * 退款通知  ---  小程序退款通知 （ 收银端和微信公众号）
+     *
+     * @param request
+     * @return
+     */
+    @RequestMapping("/entry/xcxRefundnotify")
+    @ResponseBody
+    private void xcxRefundnotify(HttpServletRequest request,HttpServletResponse response) throws IOException, JDOMException, NoSuchPaddingException, NoSuchAlgorithmException, NoSuchProviderException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
+
+        logger.info("------回调-小程序-退款-------");
+
+        Map<String, Object> params = new HashMap<String, Object>();
+        //接收微信退款通知的数据流
+        InputStream inStream = request.getInputStream();
+        ByteArrayOutputStream outSteam = new ByteArrayOutputStream();
+        byte[] buffer = new byte[1024];
+        int len = 0;
+        while ((len = inStream.read(buffer)) != -1) {
+            outSteam.write(buffer, 0, len);
+        }
+        outSteam.close();
+        inStream.close();
+        //微信退款通知返回串
+        String resultStr = new String(outSteam.toByteArray(), "utf-8");
+        //将返回串转换成 Map
+        Map<String, String> xmlToMap = PayCommonUtil.doXMLParse(resultStr);
+
+        //在return_code为SUCCESS的时候有返回 req_info
+        if ("SUCCESS".equals(xmlToMap.get("return_code"))) {
+            String mch_id=xmlToMap.get("mch_id");
+            String appid=xmlToMap.get("appid");
+            if(StringUtils.isEmpty(mch_id)||StringUtils.isEmpty(appid)){
+                return;
+            }
+
+            ZLRpcResult zlRpcResult = null;
+            try {
+                zlRpcResult = apitWxPayService.xcxRefundNotify(xmlToMap);
+            } catch (Exception ex) {
+                throw new ServiceException(ServiceException.SYS_ERROR);
+            }
+
+            //判断返回结果
+            if(!zlRpcResult.success()){
+                logger.info(zlRpcResult.getErrorMsg()+"---小程序通知参数"+xmlToMap);
+            }
+
+            //通知微信.异步确认成功.必写.不然会一直通知后台.八次之后就认为交易失败了.
+            String resXml = "<xml>" + "<return_code><![CDATA[SUCCESS]]></return_code>"
+                    + "<return_msg><![CDATA[OK]]></return_msg>" + "</xml> ";
+            //处理业务完毕
+            //------------------------------
+            BufferedOutputStream out = new BufferedOutputStream(
+                    response.getOutputStream());
+            out.write(resXml.getBytes());
+            out.flush();
+            out.close();
+        }
+    }
+
+    /**
+     * 暂时不要动）----无用方法 前段页面把这个方法去掉 这个方法才能去掉
+     * （暂时不要动）
+     *
+     * @param request
+     * @return
+     */
+    @RequestMapping("/queryPayEnable")
+    @ResponseBody
+    public ZLResult queryPayEnable(HttpServletRequest request) {
+        Map map = new HashMap<>();
+        Map<String, Object> params = getParams();
+        map.put("wxpayenable", "1");
+        map.put("alipayenable", "1");
+        return ZLResult.Success(map);
+    }
+
+    /**
+     * 校验参数
+     */
+    private void checkAddBrandParams(Map<String, Object> params) {
+        //业务单号
+        String businesscode = MapUtils.getString(params, "businesscode");
+
+        //业务类型
+        String businessorigin = MapUtils.getString(params, "businessorigin");
+
+        if (StringUtils.isEmpty(businesscode)) {
+            throw new ServiceException("业务单号不能为空");
+        }
+
+        if (StringUtils.isEmpty(businessorigin)) {
+            throw new ServiceException("业务类型不能为空");
+        }
+    }
+
+    /**
+     * 校验参数
+     */
+    private void checkInnerPayParams(Map<String, Object> params) {
+
+        //商户编码
+        String shopcode = MapUtils.getString(params, "shopcode");
+        //业务单号
+        String businesscode = MapUtils.getString(params, "businesscode");
+        //支付金额
+        String payamount = MapUtils.getString(params, "payamount");
+        //业务类型
+        String businessorigin = MapUtils.getString(params, "businessorigin");
+        //设备标识
+        String openid = MapUtils.getString(params, "openid");
+        //回调接口标识
+        String returnflag = MapUtils.getString(params, "returnflag");
+        //门店
+        String branchcode = MapUtils.getString(params, "branchcode");
+
+        if (StringUtils.isEmpty(businesscode)) {
+//            throw new ServiceException(ServiceException.PARAM_ERROR);
+            throw new ServiceException("businesscode不能为空！");
+        }
+
+        if (StringUtils.isEmpty(shopcode)) {
+            throw new ServiceException("shopcode不能为空！");
+        }
+
+        if (StringUtils.isEmpty(payamount)) {
+            throw new ServiceException("支付金额不能为空！");
+        }
+
+        if (StringUtils.isEmpty(businessorigin)) {
+            throw new ServiceException("业务类型不能为空！");
+        }
+
+        if (StringUtils.isEmpty(openid)) {
+            throw new ServiceException("openid不能为空！");
+        }
+        if (StringUtils.isEmpty(branchcode)) {
+            throw new ServiceException("branchcode不能为空！");
+        }
+    }
+
+}

@@ -1,0 +1,305 @@
+package com.wgb.util.excel.constant;
+
+import com.wgb.util.excel.model.ExcelColumn;
+
+import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * 导出列表的表头定义
+ *      最大设置单元格为  255
+ */
+public class ExcelTitles {
+
+	private static final List<ExcelColumn> saleCommodityCollectTitle = new ArrayList<ExcelColumn>(0);
+	private static final List<ExcelColumn> saleBillCollectTitle = new ArrayList<ExcelColumn>(0);
+	private static final List<ExcelColumn> saleDetailCollectTitle = new ArrayList<ExcelColumn>(0);
+	private static final List<ExcelColumn> purchaseStatisticsCollectTitle = new ArrayList<>(0);
+    private static final List<ExcelColumn> purchaseDetailsCollectTitle = new ArrayList<>(0);
+    private static final List<ExcelColumn> salesManageDatailCollectTitle = new ArrayList<>(0);
+    private static final List<ExcelColumn> salesRetailStatisticsCollectTitle = new ArrayList<>(0);
+    private static final List<ExcelColumn> salesStoresSumCollectTitle = new ArrayList<>(0);
+    private static final List<ExcelColumn> storageStatisticsCollectTitle = new ArrayList<>(0);
+    private static final List<ExcelColumn> storageInventoryCollectTitle = new ArrayList<>(0);
+
+    /**
+     *  最大设置单元格为  255
+     */
+	static {
+        /******************************销售商品汇总导出Title start******************************/
+        saleCommodityCollectTitle.add(new ExcelColumn("货号" ,"commoditycode" ,12));
+        saleCommodityCollectTitle.add(new ExcelColumn("商品名称" ,"commodityname" ,24));
+        saleCommodityCollectTitle.add(new ExcelColumn("商品分类" ,"categoryname" ,12));
+        saleCommodityCollectTitle.add(new ExcelColumn("商品规格" ,"spec" ,12));
+        saleCommodityCollectTitle.add(new ExcelColumn("商品单位" ,"unitname" ,12));
+        saleCommodityCollectTitle.add(new ExcelColumn("销售数量" ,"salenums" ,12));
+        saleCommodityCollectTitle.add(new ExcelColumn("销售金额" ,"salesubtotal" ,12));
+        saleCommodityCollectTitle.add(new ExcelColumn("退货数量" ,"returnnums" ,12));
+        saleCommodityCollectTitle.add(new ExcelColumn("退货金额" ,"returnsubtotal" ,12));
+        saleCommodityCollectTitle.add(new ExcelColumn("实销数量" ,"realnums" ,12));
+        saleCommodityCollectTitle.add(new ExcelColumn("实销金额" ,"realsubtotal" ,12));
+        saleCommodityCollectTitle.add(new ExcelColumn("赠送数量" ,"realgivenums" ,12));
+        saleCommodityCollectTitle.add(new ExcelColumn("赠送金额" ,"salegivesubtotal" ,12));
+        /******************************销售商品汇总导出Title end******************************/
+
+        /******************************销售单据汇总导出Title start******************************/
+        saleBillCollectTitle.add(new ExcelColumn("订单编号" ,"billcode" ,12));
+        saleBillCollectTitle.add(new ExcelColumn("单据类型" ,"billtypename" ,24));
+        saleBillCollectTitle.add(new ExcelColumn("客户ID" ,"account" ,12));
+        saleBillCollectTitle.add(new ExcelColumn("客户名称" ,"nickname" ,12));
+        saleBillCollectTitle.add(new ExcelColumn("销售数量" ,"salenums" ,12));
+        saleBillCollectTitle.add(new ExcelColumn("销售金额" ,"salesubtotal" ,12));
+        saleBillCollectTitle.add(new ExcelColumn("退货数量" ,"returnnums" ,12));
+        saleBillCollectTitle.add(new ExcelColumn("退货金额" ,"returnsubtotal" ,12));
+        saleBillCollectTitle.add(new ExcelColumn("实销数量" ,"realnums" ,12));
+        saleBillCollectTitle.add(new ExcelColumn("实销金额" ,"realsubtotal" ,12));
+        saleBillCollectTitle.add(new ExcelColumn("赠送数量" ,"realgivenums" ,12));
+        saleBillCollectTitle.add(new ExcelColumn("赠送金额" ,"realgivesubtotal" ,12));
+        saleBillCollectTitle.add(new ExcelColumn("制单日期" ,"createtime" ,12));
+        /******************************销售单据汇总导出Title end******************************/
+
+        /******************************销售明细汇总导出Title start******************************/
+        saleDetailCollectTitle.add(new ExcelColumn("订单编号" ,"billcode" ,12));
+        saleDetailCollectTitle.add(new ExcelColumn("单据类型" ,"billtypename" ,24));
+        saleDetailCollectTitle.add(new ExcelColumn("客户ID" ,"account" ,12));
+        saleDetailCollectTitle.add(new ExcelColumn("客户名称" ,"nickname" ,12));
+        saleDetailCollectTitle.add(new ExcelColumn("货号" ,"commoditycode" ,12));
+        saleDetailCollectTitle.add(new ExcelColumn("商品名称" ,"commodityname" ,12));
+        saleDetailCollectTitle.add(new ExcelColumn("商品类别" ,"categoryname" ,12));
+        saleDetailCollectTitle.add(new ExcelColumn("规格" ,"spec" ,12));
+        saleDetailCollectTitle.add(new ExcelColumn("单位" ,"unitname" ,12));
+        saleDetailCollectTitle.add(new ExcelColumn("数量" ,"nums" ,12));
+        saleDetailCollectTitle.add(new ExcelColumn("售价" ,"price" ,12));
+        saleDetailCollectTitle.add(new ExcelColumn("小计" ,"subtotal" ,12));
+        saleDetailCollectTitle.add(new ExcelColumn("赠送数量" ,"givenums" ,12));
+        saleDetailCollectTitle.add(new ExcelColumn("赠送金额" ,"givesubtotal" ,12));
+        /******************************销售明细汇总导出Title end******************************/
+
+        /******************************采购报表商品汇总导出Title start******************************/
+        ExcelColumn zPurchaseStatisticsTitle = new ExcelColumn("采购报表统计", "", 170);
+
+        List<ExcelColumn> secPurchaseStatisticsExcelList = new ArrayList<>();
+        secPurchaseStatisticsExcelList.add(new ExcelColumn("门店" ,"purbranchname",17));
+        secPurchaseStatisticsExcelList.add(new ExcelColumn("日期" ,"createtime",17));
+
+        ExcelColumn commodityInfoPurchaseStatistics = new ExcelColumn("商品信息" ,"" ,85);
+        List<ExcelColumn> commodityChildPurchaseStatistics = new ArrayList<>();
+        commodityChildPurchaseStatistics.add(new ExcelColumn("货号","commoditycode" ,17));
+        commodityChildPurchaseStatistics.add(new ExcelColumn("品名","commodityname" ,17));
+        commodityChildPurchaseStatistics.add(new ExcelColumn("品类","categoryname" ,17));
+        commodityChildPurchaseStatistics.add(new ExcelColumn("品牌","brandname" ,17));
+        commodityChildPurchaseStatistics.add(new ExcelColumn("单位","unitname" ,17));
+        commodityInfoPurchaseStatistics.setChildren(commodityChildPurchaseStatistics);
+        secPurchaseStatisticsExcelList.add(commodityInfoPurchaseStatistics);
+
+        ExcelColumn purchaseInfoPurchaseStatistics = new ExcelColumn("采购信息" ,"" ,51);
+        List<ExcelColumn> purchaseInfoChildPurchaseStatistics = new ArrayList<>();
+        purchaseInfoChildPurchaseStatistics.add(new ExcelColumn("采购金额","subtotal" ,17));
+        purchaseInfoChildPurchaseStatistics.add(new ExcelColumn("采购数量","nums" ,17));
+        purchaseInfoChildPurchaseStatistics.add(new ExcelColumn("赠送数量","givenums" ,17));
+        purchaseInfoPurchaseStatistics.setChildren(purchaseInfoChildPurchaseStatistics);
+        secPurchaseStatisticsExcelList.add(purchaseInfoPurchaseStatistics);
+
+        zPurchaseStatisticsTitle.setChildren(secPurchaseStatisticsExcelList);
+        purchaseStatisticsCollectTitle.add(zPurchaseStatisticsTitle);
+        /******************************销售商品汇总导出Title end******************************/
+
+        /******************************采购报表商品明细导出Title start******************************/
+        ExcelColumn zPurchaseDetailsTitle = new ExcelColumn("采购报表明细", "", 238);
+
+        List<ExcelColumn> secPurchaseDetailsExcelList = new ArrayList<>();
+        secPurchaseDetailsExcelList.add(new ExcelColumn("门店" ,"purbranchname",17));
+
+        ExcelColumn commodityInfoPurchaseDetails = new ExcelColumn("商品信息" ,"" ,85);
+        List<ExcelColumn> commodityChildPurchaseDetails = new ArrayList<>();
+        commodityChildPurchaseDetails.add(new ExcelColumn("货号","commoditycode" ,17));
+        commodityChildPurchaseDetails.add(new ExcelColumn("品名","commodityname" ,17));
+        commodityChildPurchaseDetails.add(new ExcelColumn("品类","categoryname" ,17));
+        commodityChildPurchaseDetails.add(new ExcelColumn("规格","spec" ,17));
+        commodityChildPurchaseDetails.add(new ExcelColumn("单位","unitname" ,17));
+        commodityInfoPurchaseDetails.setChildren(commodityChildPurchaseDetails);
+        secPurchaseDetailsExcelList.add(commodityInfoPurchaseDetails);
+
+        ExcelColumn purchaseInfoPurchaseDetails = new ExcelColumn("采购信息" ,"" ,136);
+        List<ExcelColumn> purchaseInfoChildPurchaseDetails = new ArrayList<>();
+        purchaseInfoChildPurchaseDetails.add(new ExcelColumn("时间","createtime" ,25));
+        purchaseInfoChildPurchaseDetails.add(new ExcelColumn("采购单号","billcode" ,25));
+        purchaseInfoChildPurchaseDetails.add(new ExcelColumn("单据类型","billtype" ,17));
+        purchaseInfoChildPurchaseDetails.add(new ExcelColumn("供应商","suppliername" ,17));
+        purchaseInfoChildPurchaseDetails.add(new ExcelColumn("采购金额","subtotal" ,17));
+        purchaseInfoChildPurchaseDetails.add(new ExcelColumn("采购数量","nums" ,17));
+        purchaseInfoChildPurchaseDetails.add(new ExcelColumn("赠送数量","givenums" ,17));
+        purchaseInfoChildPurchaseDetails.add(new ExcelColumn("单价","price" ,17));
+        purchaseInfoPurchaseDetails.setChildren(purchaseInfoChildPurchaseDetails);
+        secPurchaseDetailsExcelList.add(purchaseInfoPurchaseDetails);
+
+        zPurchaseDetailsTitle.setChildren(secPurchaseDetailsExcelList);
+        purchaseDetailsCollectTitle.add(zPurchaseDetailsTitle);
+        /******************************销售商品汇总导出Title end******************************/
+        /******************************销售报表导出******************************/
+        /******************************销售报表-收银流水******************************/
+        ExcelColumn  salesManageDatailCollect = new ExcelColumn("收银流水" ,"" ,0);
+        salesManageDatailCollectTitle.add(salesManageDatailCollect);
+
+        // zibiaotiao
+        List<ExcelColumn> salesManageDatailCollectTitleChildren = new ArrayList<>();
+        salesManageDatailCollect.setChildren(salesManageDatailCollectTitleChildren);
+        //salesManageDatailCollectTitle.add(new ExcelColumn("序号" ,"billcode" ,12));
+        salesManageDatailCollectTitleChildren.add(new ExcelColumn("门店" ,"branchname" ,32));
+        salesManageDatailCollectTitleChildren.add(new ExcelColumn("收银时间" ,"paytime" ,32));
+        salesManageDatailCollectTitleChildren.add(new ExcelColumn("订单号" ,"ticketcode" ,32));
+        salesManageDatailCollectTitleChildren.add(new ExcelColumn("订单金额" ,"total" ,17));
+        salesManageDatailCollectTitleChildren.add(new ExcelColumn("优惠金额" ,"trueamount" ,17));
+        salesManageDatailCollectTitleChildren.add(new ExcelColumn("应收金额" ,"paytotal" ,17));
+        salesManageDatailCollectTitleChildren.add(new ExcelColumn("会员号" ,"memberno" ,17));
+        salesManageDatailCollectTitleChildren.add(new ExcelColumn("付款方式" ,"payname" ,17));
+        salesManageDatailCollectTitleChildren.add(new ExcelColumn("付款金额" ,"payamount" ,17));
+        salesManageDatailCollectTitleChildren.add(new ExcelColumn("交易类型" ,"tradename" ,17));
+        salesManageDatailCollectTitleChildren.add(new ExcelColumn("退货原单号" ,"returncode" ,17));
+        salesManageDatailCollectTitleChildren.add(new ExcelColumn("收银员" ,"cashiername" ,17));
+
+        /******************************销售报表-零售统计******************************/
+        ExcelColumn salesRetailStatisticsTitle = new ExcelColumn("零售统计" ,"" ,0);
+        salesRetailStatisticsCollectTitle.add(salesRetailStatisticsTitle);
+
+        // 子表头
+        List<ExcelColumn> salesRetailStatisticsChildren= new ArrayList<>();
+        salesRetailStatisticsTitle.setChildren(salesRetailStatisticsChildren);
+
+        salesRetailStatisticsChildren.add(new ExcelColumn("门店" ,"branchname" ,32));
+        salesRetailStatisticsChildren.add(new ExcelColumn("日期" ,"saletime" ,32));
+        salesRetailStatisticsChildren.add(new ExcelColumn("品名" ,"commodityname" ,17));
+        salesRetailStatisticsChildren.add(new ExcelColumn("品类" ,"categoryname" ,17));
+        salesRetailStatisticsChildren.add(new ExcelColumn("品牌" ,"brandname" ,17));
+
+        ExcelColumn retailStatisticsDetails = new ExcelColumn("数量" ,"" ,34);
+        List <ExcelColumn> retailStatisticsDetailsChildren=new ArrayList<>();
+        retailStatisticsDetailsChildren.add(new ExcelColumn("销售数量" ,"salenums" ,17));
+        retailStatisticsDetailsChildren.add(new ExcelColumn("退货数量" ,"canreturnnums" ,17));
+        retailStatisticsDetails.setChildren(retailStatisticsDetailsChildren);
+        salesRetailStatisticsChildren.add(retailStatisticsDetails);
+
+        salesRetailStatisticsChildren.add(new ExcelColumn("销售金额" ,"paysubtotal" ,17));
+        salesRetailStatisticsChildren.add(new ExcelColumn("销售成本" ,"costsaleamount" ,17));
+        salesRetailStatisticsChildren.add(new ExcelColumn("毛利率" ,"grossprofitrate" ,17));
+
+        /******************************销售报表-门店统计******************************/
+        ExcelColumn shopCount = new ExcelColumn("门店统计" ,"" ,0);
+        salesStoresSumCollectTitle.add(shopCount);
+
+        // zibiaotiao
+        List<ExcelColumn> cTiTle = new ArrayList<>();
+        shopCount.setChildren(cTiTle);
+
+        cTiTle.add(new ExcelColumn("门店" ,"branchname" ,32));
+        cTiTle.add(new ExcelColumn("日期" ,"saletime" ,32));
+        cTiTle.add(new ExcelColumn("销售金额" ,"paysubtotal" ,32));
+        cTiTle.add(new ExcelColumn("毛利" ,"profit" ,32));
+        cTiTle.add(new ExcelColumn("库存金额" ,"storagetotal" ,32));
+
+        /******************************销售报表汇总导出Title end******************************/
+
+
+        /******************************库存报表-库存统计导出Title start******************************/
+        ExcelColumn StorageStatisticsTitle = new ExcelColumn("库存报表统计", "", 170);
+
+        List<ExcelColumn> storageStatisticsExcelList = new ArrayList<>();
+        storageStatisticsExcelList.add(new ExcelColumn("门店" ,"branchname",17));
+        storageStatisticsExcelList.add(new ExcelColumn("日期" ,"querytime",34));
+        storageStatisticsExcelList.add(new ExcelColumn("货号" ,"commoditycode",17));
+        storageStatisticsExcelList.add(new ExcelColumn("品名" ,"commodityname",17));
+        storageStatisticsExcelList.add(new ExcelColumn("品类" ,"categoryname",17));
+        storageStatisticsExcelList.add(new ExcelColumn("期初结余" ,"currentstorage",17));
+        storageStatisticsExcelList.add(new ExcelColumn("本期出入库" ,"changenums",17));
+
+        ExcelColumn currentSaleStatistics = new ExcelColumn("本期销售" ,"" ,34);
+        List<ExcelColumn> currentSaleStatisticsChildren = new ArrayList<>();
+        currentSaleStatisticsChildren.add(new ExcelColumn("销售数量","salenums" ,17));
+        currentSaleStatisticsChildren.add(new ExcelColumn("销售金额","saletotal" ,17));
+        currentSaleStatistics.setChildren(currentSaleStatisticsChildren);
+        storageStatisticsExcelList.add(currentSaleStatistics);
+
+        ExcelColumn currentRemindStatistics = new ExcelColumn("本期结存" ,"" ,34);
+        List<ExcelColumn> currentRemindStatisticsChildren = new ArrayList<>();
+        currentRemindStatisticsChildren.add(new ExcelColumn("结存数量","remindstorage" ,17));
+        currentRemindStatisticsChildren.add(new ExcelColumn("结存金额","currenttotal" ,17));
+        currentRemindStatistics.setChildren(currentRemindStatisticsChildren);
+        storageStatisticsExcelList.add(currentRemindStatistics);
+
+        StorageStatisticsTitle.setChildren(storageStatisticsExcelList);
+        storageStatisticsCollectTitle.add(StorageStatisticsTitle);
+        /******************************库存报表-库存统计导出Title end******************************/
+
+
+        /******************************库存报表-库存明细导出Title start******************************/
+        ExcelColumn StorageInventoryTitle = new ExcelColumn("库存报表明细", "", 170);
+
+        List<ExcelColumn> storageInventoryExcelList = new ArrayList<>();
+        storageInventoryExcelList.add(new ExcelColumn("业务类型" ,"businesstname",17));
+        storageInventoryExcelList.add(new ExcelColumn("业务单号" ,"billcode",30));
+        storageInventoryExcelList.add(new ExcelColumn("业务日期" ,"createtime",17));
+        storageInventoryExcelList.add(new ExcelColumn("货号" ,"commoditycode",17));
+        storageInventoryExcelList.add(new ExcelColumn("品名" ,"commodityname",17));
+        storageInventoryExcelList.add(new ExcelColumn("品类" ,"categoryname",17));
+        storageInventoryExcelList.add(new ExcelColumn("品牌" ,"brandname",17));
+
+        ExcelColumn storageChangeStatistics = new ExcelColumn("出入库" ,"" ,34);
+        List<ExcelColumn> storageChangeStatisticsChildren = new ArrayList<>();
+        storageChangeStatisticsChildren.add(new ExcelColumn("数量","changenums" ,17));
+        storageChangeStatisticsChildren.add(new ExcelColumn("金额","amount" ,17));
+        storageChangeStatistics.setChildren(storageChangeStatisticsChildren);
+        storageInventoryExcelList.add(storageChangeStatistics);
+        storageInventoryExcelList.add(new ExcelColumn("剩余库存" ,"currentstorage",17));
+
+        StorageInventoryTitle.setChildren(storageInventoryExcelList);
+        storageInventoryCollectTitle.add(StorageInventoryTitle);
+        /******************************库存报表-库存明细导出Title end******************************/
+
+
+	}
+
+    public static List<ExcelColumn> getSaleCommodityCollectTitle() {
+        return saleCommodityCollectTitle;
+    }
+
+    public static List<ExcelColumn> getSaleBillCollectTitle() {
+        return saleBillCollectTitle;
+    }
+
+    public static List<ExcelColumn> getSaleDetailCollectTitle() {
+        return saleDetailCollectTitle;
+    }
+
+    public static List<ExcelColumn> getPurchaseStatisticsCollectTitle() {
+        purchaseStatisticsCollectTitle.get(0).setTitle("采购报表统计");
+        return purchaseStatisticsCollectTitle;
+    }
+
+    public static List<ExcelColumn> getPurchaseDetailsCollectTitle() {
+        purchaseStatisticsCollectTitle.get(0).setTitle("采购报表明细");
+        return purchaseDetailsCollectTitle;
+    }
+    public static List<ExcelColumn> getSalesManageDatailCollectTitle() {
+        salesManageDatailCollectTitle.get(0).setTitle("收银流水");
+        return salesManageDatailCollectTitle;
+    }
+    public static List<ExcelColumn> getSalesRetailStatisticsCollectTitle() {
+        salesRetailStatisticsCollectTitle.get(0).setTitle("零售统计");
+        return salesRetailStatisticsCollectTitle;
+    }
+    public static List<ExcelColumn> getSalesStoresSumCollectTitle() {
+        salesStoresSumCollectTitle.get(0).setTitle("门店统计");
+        return salesStoresSumCollectTitle;
+    }
+    public static List<ExcelColumn> getStorageStatisticsCollectTitle() {
+        storageStatisticsCollectTitle.get(0).setTitle("库存报表统计");
+        return storageStatisticsCollectTitle;
+    }
+
+    public static List<ExcelColumn> getStorageInventoryCollectTitle() {
+        storageInventoryCollectTitle.get(0).setTitle("库存报表明细");
+        return storageInventoryCollectTitle;
+    }
+
+}

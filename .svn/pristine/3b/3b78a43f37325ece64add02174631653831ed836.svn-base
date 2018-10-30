@@ -1,0 +1,289 @@
+package com.wgb.controller.mb;
+
+import com.wgb.cache.RedisFactory;
+import com.wgb.dubbo.ZLRpcResult;
+import com.wgb.exception.ServiceException;
+import com.wgb.service.LoginInfoService;
+import com.wgb.service.dubbo.pays.admin.ApiPayService;
+import com.wgb.service.dubbo.wxms.web.ApitCsAuthorService;
+import com.wgb.service.dubbo.wxms.web.ApitCsTheThirdPartService;
+import com.wgb.util.*;
+import net.sf.json.JSONObject;
+import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.http.HttpEntity;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
+import org.codehaus.jackson.map.util.JSONPObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.http.HttpRequest;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+
+import javax.servlet.http.HttpServletRequest;
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * Controller通用父类
+ */
+@Controller
+@Qualifier("baseController")
+public abstract class MBBaseController {
+    private static final Logger logger = LoggerFactory.getLogger(MBBaseController.class);
+    @Autowired
+    private LoginInfoService loginInfoService;
+
+    @Autowired
+    private ApiPayService apiPayService;
+    @Autowired
+    private ApitCsAuthorService apitCsAuthorService;
+    @Autowired
+    private ApitCsTheThirdPartService apitCsTheThirdPartService;
+
+    public Map<String, Object> getParams() {
+        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+        Map<String, Object> params = HttpRequestUtil.getParams(request);
+        return params;
+    }
+
+    public Map<String, Object> getPubParams() {
+        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+        Map<String, Object> params = HttpRequestUtil.getParams(request);
+        return params;
+    }
+
+    public Object FailResult(int errorCode) {
+        Map<String, Object> result = new HashMap<String, Object>();
+        result.put("success", "0");
+        result.put("errcode", errorCode);
+        result.put("errmsg", ServiceException.getEnMsg(errorCode));
+        return getFinalResult(result);
+    }
+
+    public Object RpcSuccessResult(ZLRpcResult rpcResult) {
+        Object data = null;
+        if (rpcResult != null) {
+            data = rpcResult.getData();
+        }
+        Map<String, Object> result = new HashMap<String, Object>();
+        result.put("success", "1");
+        result.put("result", data);
+        return getFinalResult(result);
+    }
+
+    /**
+     * 用于处理jsonp兼容性返回
+     *
+     * @param result
+     * @return
+     */
+    private Object getFinalResult(Map<String, Object> result) {
+        ApiUtil.formatObjectForApi(result);
+        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+        String callback = request.getParameter("callback");
+        if (StringUtils.isEmpty(callback)) {
+            return result;
+        } else {
+            return new JSONPObject(callback, result);
+        }
+    }
+
+    /**
+     * 更新redis中的用户信息
+     */
+    public void updaterMemberInfoInRedis(HttpServletRequest request) {
+        Map<String, Object> params = ParamsUtil.handleServletParameter(request);
+
+        //商户编码必传
+        String shopcode = MapUtils.getString(params, "shopcode");
+        if (StringUtils.isEmpty(shopcode)) {
+            throw new ServiceException(ServiceException.OPER_ERROR);
+        }
+        String test = MapUtils.getString(params, HttpRequestConstant.ZL_REQUEST_TEST, "");
+        String openid = "";
+        if (StringUtils.isNotEmpty(test) && !SystemConfig.SYSTEM_START_ENV.equalsIgnoreCase(SystemStartEnv.prod.toString())) {
+            openid = test;
+        } else {
+            //cookie
+            Map<String, Object> cookieMap = HttpRequestUtil.getRequestCookies(request);
+            //token
+            // String token = MapUtils.getString(cookieMap, HttpRequestConstant.MB_TOKEN_ID);
+            openid = MapUtils.getString(cookieMap, HttpRequestConstant.MB_TOKEN_ID);
+          /*  if (StringUtils.isNotEmpty(token)) {
+                //account 商户
+                account = RedisFactory.getPassportClient().get(HttpRequestConstant.MB_WX_ACCOUNT_PREFIX + token);
+            }*/
+        }
+        if (StringUtils.isNotEmpty(openid)) {
+            loginInfoService.updateMemberInfoInRedis(shopcode, openid);
+        }
+    }
+
+
+    /**
+     * 设置门店参数
+     *
+     * @param params
+     */
+    public void setBranchParams(Map<String, Object> params) {
+        params.put("branchcode", MapUtils.getString(params, Contants.LOGIN_USER_BRANCH_CODE));
+        params.put("branchname", MapUtils.getString(params, Contants.LOGIN_USER_BRANCH_NAME));
+    }
+
+    /*
+    * 获取调用微信接口的access_token
+    *
+    * */
+
+    public String getAcess_token(Map<String, Object> params) {
+        String code = MapUtils.getString(params, "code");
+        String shopcode = MapUtils.getString(params, "shopcode");
+        ZLRpcResult rpcResult = apiPayService.getPayConfig(params);
+        Map<String, Object> payConfig = rpcResult.getMap();
+        String wxPubAppId = MapUtils.getString(payConfig, "wxpubappid");
+        String wxPubAppSecret = MapUtils.getString(payConfig, "wxpubappsecret");
+        String acess_token = null;
+        acess_token = RedisFactory.getDefaultClient().get("shopcode_" + shopcode + "acess_token");
+        if (StringUtils.isEmpty(acess_token)) {
+            // 拼接请求地址
+            // https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=wxfa05743eef319afd&secret=APP724c7f5d7691a6cc7372870b08127a39
+            String requestUrl = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=APPID&secret=APPSECRET";
+
+            requestUrl = requestUrl.replace("APPID", wxPubAppId);
+            requestUrl = requestUrl.replace("APPSECRET", wxPubAppSecret);
+            String httpResult = HttpClientUtil.httpGetRequest(requestUrl);
+            if (StringUtils.isNotEmpty(httpResult)) {
+                JSONObject jsonObject = JSONObject.fromObject(httpResult);
+                //获取到的acecss_token和expires_in保存到redis当中
+                acess_token = jsonObject.getString("access_token");
+                RedisFactory.getDefaultClient().set("shopcode_" + shopcode + "acess_token", acess_token, 7200);
+            }
+        }
+        return acess_token;
+    }
+
+    /*
+  *  @param string url 调用微信发送模板消息的接口的URL
+  *  @param string body post提交的数据
+  * */
+    public static String sendHttpPost(String url, String body) throws Exception {
+        CloseableHttpClient httpClient = HttpClients.createDefault();
+        HttpPost httpPost = new HttpPost(url);
+        httpPost.addHeader("Content-Type", "application/json");
+        // httpPost.setEntity(new StringEntity(body));
+        httpPost.setEntity(new StringEntity(body, "UTF-8"));
+
+        CloseableHttpResponse response = httpClient.execute(httpPost);
+        System.out.println(response.getStatusLine().getStatusCode() + "\n");
+        HttpEntity entity = response.getEntity();
+        String responseContent = EntityUtils.toString(entity, "UTF-8");
+        System.out.println(responseContent);
+        response.close();
+        httpClient.close();
+        return responseContent;
+    }
+
+    /*
+    * 用刷新令牌获取新的access_token
+    *
+    * */
+    public String get_access_token(String authorizerappid) {
+        Map<String, Object> param = new HashMap<>();
+        // param.put("shopcode",shopcode);
+        param.put("authorizerappid", authorizerappid);
+        String access_token = null;
+        access_token = RedisFactory.getPassportClient().get(authorizerappid + "_" + "authorizeraccesstoken");
+        if (StringUtils.isEmpty(access_token)) {
+            ZLRpcResult zlRpcResul = new ZLRpcResult();
+            zlRpcResul = apitCsAuthorService.queryGzhMsg(param);
+            if (zlRpcResul.success()) {
+                Map<String, Object> authorizermap = zlRpcResul.getMap();
+                String authorizerrefreshtoken = MapUtils.getString(authorizermap, "authorizerrefreshtoken");
+                //调第三方接口查询新的access_token
+                if (StringUtils.isEmpty(authorizerrefreshtoken)) {
+                    throw new ServiceException("查询刷新令牌失败");
+                }
+                //查询第三方的commont_accesstoken
+                param.put("commontappid", Contants.COMMONT_APPID);
+                zlRpcResul = apitCsTheThirdPartService.queryComponentverifyticket(param);
+                String componentaccesstoken = MapUtils.getString(zlRpcResul.getMap(), "componentaccesstoken");
+                if (StringUtils.isEmpty(componentaccesstoken)) {
+                    throw new ServiceException("查询第三方的令牌失败");
+                }
+                String newaccesstokenurl = Contants.NEW_ACCESSTOKRN_URL.replace("COMPONENT_ACCESS_TOKEN", componentaccesstoken);
+                logger.info("获取新的令牌的URL:" + newaccesstokenurl);
+                //处理一下调第三方的参数
+                Map<String, Object> newaccesstokenmap = new HashMap<>();
+                newaccesstokenmap.put("component_appid", MapUtils.getString(authorizermap, "commontappid"));
+                newaccesstokenmap.put("authorizer_appid", MapUtils.getString(authorizermap, "authorizerappid"));
+                newaccesstokenmap.put("authorizer_refresh_token", MapUtils.getString(authorizermap, "authorizerrefreshtoken"));
+                logger.info("获取新的令牌的参数:" + newaccesstokenmap);
+                JSONObject jsonObject1 = JSONObject.fromObject(newaccesstokenmap);
+                String jsonParam1 = jsonObject1.toString(); //作为参数的json字符串
+                String jsonresult = HttpClientUtil.httpsRequest(newaccesstokenurl, "POST", jsonParam1);
+                logger.info("获取新的令牌的结果，String形式的Json:" + jsonresult);
+                JSONObject jsonn = JSONObject.fromObject(jsonresult);
+                access_token = jsonn.getString("authorizer_access_token");
+                //新的令牌放到redis中保存
+                RedisFactory.getPassportClient().set(authorizerappid + "_" + "authorizeraccesstoken", access_token,Contants.EXPRETIME);
+            }
+        }
+
+        return access_token;
+    }
+    /**
+     * 通过开放平台获取网页授权凭证
+     *
+     * @param appId     公众账号的唯一标识
+     * @param code
+     * @return WeixinAouth2Token
+     */
+    public   Map<String, Object> getAuthorizer2AccessToken(String appId, String code) {
+        // 拼接请求地址
+        //String requestUrl = "https://api.weixin.qq.com/sns/oauth2/access_token?appid=APPID&secret=SECRET&code=CODE&grant_type=authorization_code";
+        String requestUrl = Contants.OPEN_ACCESS_TOKEN;
+        requestUrl = requestUrl.replace("AUTHAPPID", appId);
+        //  requestUrl = requestUrl.replace("SECRET", appSecret);
+        requestUrl = requestUrl.replace("CODE", code);
+        ZLRpcResult zlRpcResul = new ZLRpcResult();
+        Map<String,Object> param = new HashMap<>();
+        param.put("commontappid",Contants.COMMONT_APPID);
+        zlRpcResul = apitCsTheThirdPartService.queryComponentverifyticket(param);
+        logger.info("通过API查询的第三方开放平台的信息："+zlRpcResul);
+        String componentaccesstoken = MapUtils.getString(zlRpcResul.getMap(),"componentaccesstoken");
+        logger.info("通过API查询的开发平台的componentaccesstoken："+componentaccesstoken);
+        // 获取网页授权凭
+        requestUrl = requestUrl.replace("COMPONENT_ACCESS_TOKEN",componentaccesstoken);
+        requestUrl = requestUrl.replace("COMPONENT_APPID",Contants.COMMONT_APPID);
+        logger.info("获取网页授权的access_token的url:"+requestUrl);
+        String httpResult = HttpClientUtil.httpGetRequest(requestUrl);
+        logger.info("返回的获取access_token的结果："+httpResult);
+        if (StringUtils.isNotEmpty(httpResult)) {
+            try {
+                JSONObject jsonObject = JSONObject.fromObject(httpResult);
+
+                Map<String, Object> resultMap = new HashMap<String, Object>();
+                resultMap.put("access_token", jsonObject.getString("access_token"));
+                resultMap.put("expires_in", jsonObject.getString("expires_in"));
+                resultMap.put("refresh_token", jsonObject.getString("refresh_token"));
+                resultMap.put("openid", jsonObject.getString("openid"));
+                resultMap.put("scope", jsonObject.getString("scope"));
+                return resultMap;
+            } catch (Exception e) {
+                System.out.println("调用获取网页授权接口异常了:" + e.getMessage());
+            }
+        }
+
+        return null;
+    }
+
+}

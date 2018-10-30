@@ -1,0 +1,178 @@
+package com.wgb.controller.sp;
+
+import com.wgb.bean.ZLResult;
+import com.wgb.dao.Page;
+import com.wgb.dubbo.ZLRpcResult;
+import com.wgb.util.ApiUtil;
+import com.wgb.util.CommonUtil;
+import com.wgb.util.Contants;
+import com.wgb.util.HttpRequestConstant;
+import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+
+import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Controller通用父类
+ */
+@Controller
+@Qualifier("baseController")
+public abstract class SPBaseController {
+
+    private static final String PAGE = "page";
+    private static final String PAGESIZE = "pageSize";
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(SPBaseController.class);
+
+    public Map<String, Object> getParams() {
+        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+        Map<String, Object> params = getSrvParams(request);
+        return params;
+    }
+
+    private Map<String, Object> getSrvParams(HttpServletRequest request) {
+        Map<String, Object> requestParams = (Map<String, Object>)request.getAttribute(HttpRequestConstant.CONST_LOGIN_PARAMS);
+        if (StringUtils.isEmpty(requestParams.get(PAGE) == null ? null : requestParams.get(PAGE).toString())) {
+            requestParams.put(PAGE, Contants.PAGE_START);
+        } else {
+            requestParams.put(PAGE, MapUtils.getIntValue(requestParams, PAGE, Contants.PAGE_START));
+        }
+        if (StringUtils.isEmpty(requestParams.get(PAGESIZE) == null ? null : requestParams.get(PAGESIZE).toString())) {
+            requestParams.put(PAGESIZE, Contants.PAGE_SIZE);
+        } else {
+            requestParams.put(PAGESIZE, MapUtils.getIntValue(requestParams, PAGESIZE, Contants.PAGE_SIZE));
+        }
+
+        requestParams.put(Contants.USER_IP, CommonUtil.getRemortIP(request));
+        requestParams.put(Contants.LOGIN_USER_ID, MapUtils.getString(requestParams, Contants.LOGIN_USER_ID ,""));
+        requestParams.put(Contants.LOGIN_USER_FULL_NAME, MapUtils.getString(requestParams, Contants.LOGIN_USER_FULL_NAME,""));
+        requestParams.put(Contants.LOGIN_USER_SERVER_CODE, MapUtils.getString(requestParams, Contants.LOGIN_USER_SERVER_CODE,""));
+        requestParams.put(Contants.LOGIN_USER_SERVER_NAME, MapUtils.getString(requestParams, Contants.LOGIN_USER_SERVER_NAME,""));
+        requestParams.put(Contants.LOGIN_USER_IS_REQUIRED, MapUtils.getString(requestParams, Contants.LOGIN_USER_IS_REQUIRED,""));
+        return requestParams;
+    }
+
+
+
+    public Map<String, Object> SuccessResult(Object data) {
+        Map<String, Object> result = new HashMap<String, Object>();
+        result.put("success", "1");
+        result.put("data", data);
+        ApiUtil.formatObjectForApi(result);
+        return result;
+    }
+
+    /**
+     *  上传图片参数转换
+     * @return
+     */
+    protected Map<String ,Object> getUploadParams(Map<String ,Object> parameterMap){
+        Map<String ,Object> result = new HashMap<>();
+        for (Map.Entry<String ,Object> entry : parameterMap.entrySet()){
+            Object value = entry.getValue();
+            if ((value instanceof String[]) && ((String[]) value).length == 1){
+                result.put(entry.getKey() ,((String[])value)[0].toString());
+            }else {
+                result.put(entry.getKey() ,value);
+            }
+        }
+        return result;
+    }
+
+    public ZLResult parseRpcResult(ZLRpcResult rpcResult){
+        ZLResult result = ZLResult.Success();
+        if (null != rpcResult && rpcResult.success()) { // 成功
+            System.out.println("转换参数起始时间: " + System.currentTimeMillis());
+            result.setData(formatResult(rpcResult.getData()));
+            System.out.println("转换参数结束时间: " + System.currentTimeMillis());
+            return result;
+        }
+        result.setErrorMsg(rpcResult.getErrorMsg());
+        LOGGER.error(this.getClass().getName() + ":调用RPC失败!",rpcResult.getErrorMsg());
+        return result;
+    }
+
+
+    public ZLResult parseRpcResultForMsg(ZLRpcResult rpcResult){
+        ZLResult result = ZLResult.Success();
+        if (null != rpcResult && rpcResult.success()) { // 成功
+            result.setData("操作成功!");
+            return result;
+        }
+        result.setErrorMsg(rpcResult.getErrorMsg());
+        LOGGER.error(this.getClass().getName() + ":调用RPC失败!",rpcResult.getErrorMsg());
+        return result;
+    }
+
+
+    private Object formatResult(Object obj){
+        if (null != obj){
+            if (obj instanceof List){
+                return formatResultForList((List<Object>)obj);
+            } else if(obj instanceof Map){
+                return formatResultFormMap((Map<String ,Object>)obj);
+            } else if (obj instanceof Page){
+                Page page = (Page)obj;
+                List list = page.getList();
+                List formatResultList = formatResultForList(list);
+                page.setList(formatResultList);
+                return page;
+            }
+            return obj.toString();
+        }
+        return null;
+    }
+
+
+    private List<Object> formatResultForList(List<Object> params) {
+        List<Object> result = new ArrayList<>();
+        for (Object obj : params){
+            if (null != obj){
+                if (obj instanceof List){
+                    List<Object> formatResultList = formatResultForList((List<Object>)obj);
+                    result.add(formatResultList);
+                }else if(obj instanceof Map){
+                    Map<String ,Object> formatResultMap = formatResultFormMap((Map<String ,Object>)obj);
+                    result.add(formatResultMap);
+                }else {
+                    result.add(obj.toString());
+                }
+            }else {
+                result.add(obj);
+            }
+        }
+        return result;
+    }
+
+    private Map<String ,Object> formatResultFormMap(Map<String ,Object> params){
+        Map<String ,Object> result = new HashMap<>();
+        for (Map.Entry<String ,Object> entry : params.entrySet()){
+            Object value = entry.getValue();
+            String key = entry.getKey();
+            if (null != value){
+                if (value instanceof List){
+                    List<Object> formatResultList = formatResultForList((List<Object>)value);
+                    result.put(key ,formatResultList);
+                }else if(value instanceof Map){
+                    Map<String ,Object> formatResultMap = formatResultFormMap((Map<String ,Object>)value);
+                    result.put(key ,formatResultMap);
+                }else {
+                    result.put(key ,String.valueOf(value));
+                }
+            }else {
+                result.put(key ,value);
+            }
+        }
+        return  result;
+    }
+}

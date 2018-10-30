@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<sqlMap namespace="shardName.com.wgb.service.impl.SeqGenServiceImpl" jdbcTimeout="5">
+
+    <sql id="getSeqCode">
+        <![CDATA[
+		   INSERT INTO seq_${type}(createtime) VALUES(now())
+    	]]>
+    </sql>
+
+</sqlMap>

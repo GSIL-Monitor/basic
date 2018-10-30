@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/../basic-admin/basic-admin.iml" filepath="$PROJECT_DIR$/../basic-admin/basic-admin.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../basic-admin-intf/basic-admin-intf.iml" filepath="$PROJECT_DIR$/../basic-admin-intf/basic-admin-intf.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../basic-admin-service/basic-admin-service.iml" filepath="$PROJECT_DIR$/../basic-admin-service/basic-admin-service.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../basic-common-intf/basic-common-intf.iml" filepath="$PROJECT_DIR$/../basic-common-intf/basic-common-intf.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../basic-common-service/basic-common-service.iml" filepath="$PROJECT_DIR$/../basic-common-service/basic-common-service.iml" />
+      <module fileurl="file://$PROJECT_DIR$/basic-pom.iml" filepath="$PROJECT_DIR$/basic-pom.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../basic-util/basic-util.iml" filepath="$PROJECT_DIR$/../basic-util/basic-util.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../basic-web/basic-web.iml" filepath="$PROJECT_DIR$/../basic-web/basic-web.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../basic-web-intf/basic-web-intf.iml" filepath="$PROJECT_DIR$/../basic-web-intf/basic-web-intf.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../basic-web-service/basic-web-service.iml" filepath="$PROJECT_DIR$/../basic-web-service/basic-web-service.iml" />
+    </modules>
+  </component>
+</project>

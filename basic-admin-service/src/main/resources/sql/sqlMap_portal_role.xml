@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<sqlMap namespace="shardName.com.wgb.service.impl.portal.PortalRoleServiceImpl" jdbcTimeout="5">
+
+    <sql id="getShopRoleList">
+        <![CDATA[
+        	select * from portal_role where shopcode = :shopcode and del = 0
+    	]]>
+    </sql>
+
+</sqlMap>

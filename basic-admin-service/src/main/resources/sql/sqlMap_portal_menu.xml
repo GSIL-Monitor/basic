@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<sqlMap namespace="shardName.com.wgb.service.impl.portal.PortalMenuServiceImpl" jdbcTimeout="5">
+
+    <sql id="getMenuByUserId">
+        <![CDATA[
+        	select menus from portal_role a inner join portal_user_role b on a.id = b.roleid where b.userid = :userid and a.del = 0
+    	]]>
+    </sql>
+
+	<sql id="getMenuList">
+		<![CDATA[
+		    SELECT a.id,a.pid,a.name,a.url,a.level,b.domainurl,a.ordernum,a.type,a.sysname
+		    from portal_menu a left join portal_domain b on a.domainid = b.id  where a.type=0 order by a.ordernum
+    	]]>
+	</sql>
+
+	<sql id="getCacheList">
+		<![CDATA[
+		    select id,pid,name,url,level,type,sysname,groupcodes,sysname from portal_menu order by ordernum
+    	]]>
+	</sql>
+
+</sqlMap>

@@ -1,0 +1,21 @@
+package com.wgb.controller.lm.lms;
+
+import com.wgb.bean.ZLResult;
+import com.wgb.controller.lm.LMXCXBaseController;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+/**
+ * By chmin
+ */
+@Controller
+@RequestMapping("lms/user")
+public class UserController extends LMXCXBaseController {
+
+
+    @RequestMapping("updateInfo")
+    public ZLResult updateInfo(){
+
+        return ZLResult.Success();
+    }
+}

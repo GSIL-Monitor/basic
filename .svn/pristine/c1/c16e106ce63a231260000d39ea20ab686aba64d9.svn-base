@@ -1,0 +1,590 @@
+package com.wgb.controller.mt.storage;
+
+import com.wgb.bean.ZLResult;
+import com.wgb.controller.mt.MTBaseController;
+import com.wgb.dubbo.ZLRpcResult;
+import com.wgb.exception.ServiceException;
+import com.wgb.service.dubbo.stms.web.ApitStorageReportService;
+import com.wgb.util.CommonUtil;
+import com.wgb.util.ExcelUtil;
+import com.wgb.util.excel.constant.ExcelTitles;
+import com.wgb.util.excel.model.ExcelColumn;
+import com.wgb.util.excel.util.CustomizeToExcel;
+import org.apache.commons.lang.time.DateFormatUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Created by wgy on 2018/4/19.
+ */
+@Controller
+@RequestMapping("/storage/storageReport")
+public class MTStorageReportController extends MTBaseController {
+
+    @Autowired
+    private ApitStorageReportService apitStorageReportService;
+
+    @RequestMapping("/queryStorageManage")
+    @ResponseBody
+    public ZLResult query(HttpServletRequest request) {
+
+        //获取入参数据
+        Map<String, Object> params = getParams();
+
+        //定义返回对象
+        ZLRpcResult zlRpcResult = new ZLRpcResult();
+
+        try {
+
+            //系统调用
+            zlRpcResult = apitStorageReportService.query(params);
+
+        } catch (Exception ex) {
+
+            //系统级别异常
+            throw new ServiceException(ServiceException.SYS_ERROR);
+        }
+
+        //判断返回结果
+        if (!zlRpcResult.success()) {
+
+            throw new ServiceException(zlRpcResult.getErrorMsg());
+        }
+        return ZLResult.Success(zlRpcResult.getData());
+    }
+
+
+    @RequestMapping("/queryInOutStorageDetail")
+    @ResponseBody
+    public ZLResult queryInOutStorageDetail(HttpServletRequest request) {
+
+        //获取入参数据
+        Map<String, Object> params = getParams();
+
+        //定义返回对象
+        ZLRpcResult zlRpcResult = new ZLRpcResult();
+        try {
+
+            //系统调用
+            zlRpcResult = apitStorageReportService.queryInOutStorageDetail(params);
+
+        } catch (Exception ex) {
+
+            //系统级别异常
+            throw new ServiceException(ServiceException.SYS_ERROR);
+        }
+
+        //判断返回结果
+        if (!zlRpcResult.success()) {
+
+            throw new ServiceException(zlRpcResult.getErrorMsg());
+        }
+        return ZLResult.Success(zlRpcResult.getData());
+    }
+
+    @RequestMapping("/queryCostListExport")
+    @ResponseBody
+    public ZLResult queryCostListExport(HttpServletRequest request, HttpServletResponse response) {
+
+        //获取入参数据
+        Map<String, Object> params = getParams();
+
+        //定义返回对象
+        ZLRpcResult zlRpcResult = new ZLRpcResult();
+
+        try {
+
+            //系统调用
+            zlRpcResult = apitStorageReportService.queryCostListExport(params);
+            // 字段名数组
+            String[] repertory = {"branchname", "commodityname", "commoditycode", "spec", "unitname",
+                    "storage", "suppliername", "categoryname", "brandname"};
+
+            // 字段名数组
+            String[] repertoryNames = {"门店", "商品名称", "货号", "规格", "单位",
+                    "库存数量", "供应商", "类别", "品牌"};
+
+            String repertoryName = "库存成本表";
+
+            ExcelUtil.exportExcel(zlRpcResult.getList(), repertory, repertoryNames, repertoryName, request, response);
+        } catch (Exception ex) {
+
+            //系统级别异常
+            throw new ServiceException(ServiceException.SYS_ERROR);
+        }
+
+        //判断返回结果
+        if (!zlRpcResult.success()) {
+
+            throw new ServiceException(zlRpcResult.getErrorMsg());
+        }
+        return ZLResult.Success(zlRpcResult.getData());
+    }
+
+    @RequestMapping("/queryStorageCostExport")
+    @ResponseBody
+    public ZLResult queryStorageCostExport(HttpServletRequest request, HttpServletResponse response) {
+        //获取入参数据
+        Map<String, Object> params = getParams();
+
+        //定义返回对象
+        ZLRpcResult zlRpcResult = new ZLRpcResult();
+
+        try {
+
+            //系统调用
+            zlRpcResult = apitStorageReportService.queryStorageCostExport(params);
+            // 字段名数组
+            String[] repertory = {"branchname", "commodityname", "commoditycode", "unitname",
+                    "storage", "suppliername", "categoryname", "brandname"};
+
+            // 字段名数组
+            String[] repertoryNames = {"门店", "商品名称", "货号", "单位",
+                    "库存数量", "供应商", "类别", "品牌"};
+
+            String repertoryName = "库存成本表";
+
+            ExcelUtil.exportExcel(zlRpcResult.getList(), repertory, repertoryNames, repertoryName, request, response);
+        } catch (Exception ex) {
+
+            //系统级别异常
+            throw new ServiceException(ServiceException.SYS_ERROR);
+        }
+
+        //判断返回结果
+        if (!zlRpcResult.success()) {
+
+            throw new ServiceException(zlRpcResult.getErrorMsg());
+        }
+        return ZLResult.Success(zlRpcResult.getData());
+    }
+
+    @RequestMapping("/queryStorageCost")
+    @ResponseBody
+    public ZLResult queryStorageCostList(HttpServletRequest request) {
+        //获取入参数据
+        Map<String, Object> params = getParams();
+
+        //定义返回对象
+        ZLRpcResult zlRpcResult = new ZLRpcResult();
+        try {
+
+            //系统调用
+            zlRpcResult = apitStorageReportService.queryStorageCostList(params);
+
+        } catch (Exception ex) {
+
+            //系统级别异常
+            throw new ServiceException(ServiceException.SYS_ERROR);
+        }
+
+        //判断返回结果
+        if (!zlRpcResult.success()) {
+
+            throw new ServiceException(zlRpcResult.getErrorMsg());
+        }
+        return ZLResult.Success(zlRpcResult.getData());
+    }
+
+    @RequestMapping("/queryDaySum")
+    @ResponseBody
+    public ZLResult queryDaySum(HttpServletRequest request) {
+
+        //获取入参数据
+        Map<String, Object> params = getParams();
+
+        //定义返回对象
+        ZLRpcResult zlRpcResult = new ZLRpcResult();
+
+        try {
+
+            //系统调用
+            zlRpcResult = apitStorageReportService.queryDaySum(params);
+
+        } catch (Exception ex) {
+
+            //系统级别异常
+            throw new ServiceException(ServiceException.SYS_ERROR);
+        }
+
+        //判断返回结果
+        if (!zlRpcResult.success()) {
+
+            throw new ServiceException(zlRpcResult.getErrorMsg());
+        }
+        return ZLResult.Success(zlRpcResult.getData());
+    }
+
+    @RequestMapping("/queryMonthSum")
+    @ResponseBody
+    public ZLResult queryMonthSum(HttpServletRequest request) {
+
+        //获取入参数据
+        Map<String, Object> params = getParams();
+
+        //定义返回对象
+        ZLRpcResult zlRpcResult = new ZLRpcResult();
+
+        try {
+
+            //系统调用
+            zlRpcResult = apitStorageReportService.queryMonthSum(params);
+
+        } catch (Exception ex) {
+
+            //系统级别异常
+            throw new ServiceException(ServiceException.SYS_ERROR);
+        }
+
+        //判断返回结果
+        if (!zlRpcResult.success()) {
+
+            throw new ServiceException(zlRpcResult.getErrorMsg());
+        }
+        return ZLResult.Success(zlRpcResult.getData());
+    }
+
+    @RequestMapping("/queryInOutListExport")
+    @ResponseBody
+    public ZLResult queryInOutListExport(HttpServletRequest request, HttpServletResponse response) {
+        long startTime = System.currentTimeMillis();
+
+        //获取入参数据
+        Map<String, Object> params = getParams();
+
+        //定义返回对象
+        ZLRpcResult zlRpcResult = new ZLRpcResult();
+
+        try {
+
+            //系统调用
+            zlRpcResult = apitStorageReportService.queryInOutListExport(params);
+            // 字段名数组
+            String[] repertory = {"branchname", "businesstname", "billcode", "commoditycode",
+                    "commodityname", "createtime", "changenums", "amount", "buyprice", "categoryname", "brandname"};
+
+            // 字段名数组
+            String[] repertoryNames = {"门店", "业务类型", "单号编号", "货号",
+                    "品名", "业务日期", "数量", "金额", "单价", "类别", "品牌"};
+
+            String repertoryName = "库存明细表";
+
+            ExcelUtil.exportExcel(zlRpcResult.getList(), repertory, repertoryNames, repertoryName, request, response);
+        } catch (Exception ex) {
+
+            //系统级别异常
+            throw new ServiceException(ServiceException.SYS_ERROR);
+        }
+
+        //判断返回结果
+        if (!zlRpcResult.success()) {
+
+            throw new ServiceException(zlRpcResult.getErrorMsg());
+        }
+        return ZLResult.Success(zlRpcResult.getData());
+    }
+
+
+    @RequestMapping("/queryDaySumListExport")
+    @ResponseBody
+    public ZLResult queryDaySumListExport(HttpServletRequest request, HttpServletResponse response) {
+        long startTime = System.currentTimeMillis();
+
+        //获取入参数据
+        Map<String, Object> params = getParams();
+
+        //定义返回对象
+        ZLRpcResult zlRpcResult = new ZLRpcResult();
+
+        try {
+
+            //系统调用
+            zlRpcResult = apitStorageReportService.queryDaySumListExport(params);
+            // 字段名数组
+            String[] repertory = {"branchname", "createtime", "commoditycode", "commodityname",
+                    "changenums", "amount", "categoryname", "brandname"};
+
+            // 字段名数组
+            String[] repertoryNames = {"门店", "日期", "货号", "品名",
+                    "变动数量", "金额", "类别", "品牌"};
+
+            String repertoryName = "库存日汇总表";
+
+            ExcelUtil.exportExcel(zlRpcResult.getList(), repertory, repertoryNames, repertoryName, request, response);
+        } catch (Exception ex) {
+
+            //系统级别异常
+            throw new ServiceException(ServiceException.SYS_ERROR);
+        }
+
+        //判断返回结果
+        if (!zlRpcResult.success()) {
+
+            throw new ServiceException(zlRpcResult.getErrorMsg());
+        }
+        return ZLResult.Success(zlRpcResult.getData());
+    }
+
+    @RequestMapping("/queryMonthSumListExport")
+    @ResponseBody
+    public ZLResult queryMonthSumListExport(HttpServletRequest request, HttpServletResponse response) {
+
+        //获取入参数据
+        Map<String, Object> params = getParams();
+
+        //定义返回对象
+        ZLRpcResult zlRpcResult = new ZLRpcResult();
+
+        try {
+
+            //系统调用
+            zlRpcResult = apitStorageReportService.queryMonthSumListExport(params);
+            // 字段名数组
+            String[] repertory = {"branchname", "createtime", "createmonth", "commoditycode",
+                    "commodityname", "changenums", "amount", "categoryname", "brandname"};
+
+            // 字段名数组
+            String[] repertoryNames = {"门店", "日期", "月份", "货号",
+                    "品名", "变动数量", "金额", "类别", "品牌"};
+
+            String repertoryName = "库存月汇总表";
+
+            ExcelUtil.exportExcel(zlRpcResult.getList(), repertory, repertoryNames, repertoryName, request, response);
+        } catch (Exception ex) {
+
+            //系统级别异常
+            throw new ServiceException(ServiceException.SYS_ERROR);
+        }
+
+        //判断返回结果
+        if (!zlRpcResult.success()) {
+
+            throw new ServiceException(zlRpcResult.getErrorMsg());
+        }
+        return ZLResult.Success(zlRpcResult.getData());
+    }
+
+    @RequestMapping("/queryTransferList")
+    @ResponseBody
+    public ZLResult queryTransferList(HttpServletRequest request) {
+
+        //获取入参数据
+        Map<String, Object> params = getParams();
+
+        //定义返回对象
+        ZLRpcResult zlRpcResult = new ZLRpcResult();
+
+        try {
+
+            //系统调用
+            zlRpcResult = apitStorageReportService.queryTransferList(params);
+
+        } catch (Exception ex) {
+
+            //系统级别异常
+            throw new ServiceException(ServiceException.SYS_ERROR);
+        }
+
+        //判断返回结果
+        if (!zlRpcResult.success()) {
+
+            throw new ServiceException(zlRpcResult.getErrorMsg());
+        }
+        return ZLResult.Success(zlRpcResult.getData());
+    }
+
+    @RequestMapping("/queryTransferListExport")
+    @ResponseBody
+    public void queryTransferListExport(HttpServletRequest request, HttpServletResponse response) {
+
+        //获取入参数据
+        Map<String, Object> params = getParams();
+
+        //定义返回对象
+        ZLRpcResult zlRpcResult = new ZLRpcResult();
+
+        try {
+
+            //系统调用
+            zlRpcResult = apitStorageReportService.queryTransferListExport(params);
+
+        } catch (Exception ex) {
+
+            //系统级别异常
+            throw new ServiceException(ServiceException.SYS_ERROR);
+        }
+
+        //判断返回结果
+        if (!zlRpcResult.success()) {
+
+            throw new ServiceException(zlRpcResult.getErrorMsg());
+        }
+        // 字段名数组
+        String[] repertory = {"orderno", "sendbranchname", "receivebranchname", "barno",
+                "commodityname", "commoditysize", "commodityunit", "nums", "amount", "status", "createtime", "approvaluser", "approvaldate"};
+
+        // 字段名数组
+        String[] repertoryNames = {"单号", "发货门店", "收货门店", "货号",
+                "品名", "规格", "单位", "数量", "金额", "状态", "制单日期", "审核人", "审核日期"};
+
+        String repertoryName = "商品调拨明细表";
+
+        ExcelUtil.exportExcel(zlRpcResult.getList(), repertory, repertoryNames, repertoryName, request, response);
+    }
+
+
+    /**
+     * 库存报表-库存统计查询
+     * @param request
+     * @param response
+     */
+    @RequestMapping("/queryStorageStatistical")
+    @ResponseBody
+    public ZLResult queryStorageStatistical(HttpServletRequest request, HttpServletResponse response) {
+
+        //获取入参数据
+        Map<String, Object> params = getParams();
+
+        //定义返回对象
+        ZLRpcResult zlRpcResult = new ZLRpcResult();
+
+        try {
+
+            //系统调用
+            zlRpcResult = apitStorageReportService.queryStorageStatistical(params);
+
+        } catch (Exception ex) {
+
+            //系统级别异常
+            throw new ServiceException(ServiceException.SYS_ERROR);
+        }
+
+        //判断返回结果
+        if (!zlRpcResult.success()) {
+
+            throw new ServiceException(zlRpcResult.getErrorMsg());
+        }
+        return ZLResult.Success(zlRpcResult.getData());
+    }
+
+    /**
+     * //库存报表-库存统计导出
+     * @param request
+     * @param response
+     */
+    @RequestMapping("/exportStorageStatistical")
+    @ResponseBody
+    public void exportStorageStatistical(HttpServletRequest request, HttpServletResponse response) {
+
+        //获取入参数据
+        Map<String, Object> params = getParams();
+
+        //定义返回对象
+        ZLRpcResult zlRpcResult = new ZLRpcResult();
+
+        try {
+            //系统调用
+            zlRpcResult = apitStorageReportService.exportStorageStatistical(params);
+            if(zlRpcResult.getList()!=null){
+                List<ExcelColumn> storageStatisticsCollectTitle = ExcelTitles.getStorageStatisticsCollectTitle();
+                String today = DateFormatUtils.format(new Date(), "yyyy-MM-dd");
+                String title = "库存报表统计" + today;
+                CustomizeToExcel.exportExcel(response, storageStatisticsCollectTitle, zlRpcResult.getList(), title);
+            }
+        } catch (Exception ex) {
+
+            //系统级别异常
+            throw new ServiceException(ServiceException.SYS_ERROR);
+        }
+
+        //判断返回结果
+        if (!zlRpcResult.success()) {
+
+            throw new ServiceException(zlRpcResult.getErrorMsg());
+        }
+    }
+
+
+    /**
+     * 库存报表-库存明细查询
+     * @param request
+     * @param response
+     */
+    @RequestMapping("/queryStorageInventory")
+    @ResponseBody
+    public ZLResult queryStorageInventory(HttpServletRequest request, HttpServletResponse response) {
+
+        //获取入参数据
+        Map<String, Object> params = getParams();
+
+        //定义返回对象
+        ZLRpcResult zlRpcResult = new ZLRpcResult();
+
+        try {
+
+            //系统调用
+            zlRpcResult = apitStorageReportService.queryStorageInventory(params);
+
+        } catch (Exception ex) {
+
+            //系统级别异常
+            throw new ServiceException(ServiceException.SYS_ERROR);
+        }
+
+        //判断返回结果
+        if (!zlRpcResult.success()) {
+
+            throw new ServiceException(zlRpcResult.getErrorMsg());
+        }
+        return ZLResult.Success(zlRpcResult.getData());
+    }
+
+    /**
+     * //库存报表-库存明细导出
+     * @param request
+     * @param response
+     */
+    @RequestMapping("/exportStorageInventory")
+    @ResponseBody
+    public void exportStorageInventory(HttpServletRequest request, HttpServletResponse response) {
+
+        //获取入参数据
+        Map<String, Object> params = getParams();
+
+        //定义返回对象
+        ZLRpcResult zlRpcResult = new ZLRpcResult();
+
+        try {
+
+            //系统调用
+            zlRpcResult = apitStorageReportService.exportStorageInventory(params);
+            if(zlRpcResult.getList()!=null){
+                List<ExcelColumn> storageInventoryCollectTitle = ExcelTitles.getStorageInventoryCollectTitle();
+//                ExcelColumn excelColumn = storageInventoryCollectTitle.get(0);
+                String today = DateFormatUtils.format(new Date(), "yyyy-MM-dd");
+                String title = "库存明细统计" + today;
+//                excelColumn.setTitle(title);
+                CustomizeToExcel.exportExcel(response, storageInventoryCollectTitle, zlRpcResult.getList(), title);
+            }
+
+        } catch (Exception ex) {
+
+            //系统级别异常
+            throw new ServiceException(ServiceException.SYS_ERROR);
+        }
+
+        //判断返回结果
+        if (!zlRpcResult.success()) {
+
+            throw new ServiceException(zlRpcResult.getErrorMsg());
+        }
+    }
+}

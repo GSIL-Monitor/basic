@@ -1,0 +1,268 @@
+package com.wgb.controller.mt.pay;
+
+import com.alibaba.dubbo.common.logger.Logger;
+import com.alibaba.dubbo.common.logger.LoggerFactory;
+import com.wgb.bean.ZLResult;
+import com.wgb.controller.mt.MTBaseController;
+import com.wgb.dubbo.ZLRpcResult;
+import com.wgb.exception.ServiceException;
+import com.wgb.service.dubbo.mbms.admin.ApiMemberService;
+import com.wgb.service.dubbo.sms.web.ApiSmsService;
+import com.wgb.service.dubbo.wxms.admin.ApiBranchService;
+import com.wgb.util.Contants;
+import com.wgb.util.ZLConstant;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Created by Administrator on 2017/4/16 0016.
+ */
+@Controller
+@RequestMapping("/countcard")
+public class MTCountCardPayController extends MTBaseController {
+    public static final Logger logger = LoggerFactory.getLogger(MTAliPayController.class);
+    @Autowired
+    private ApiMemberService apiMemberService;
+
+    @Autowired
+    private ApiSmsService apiSmsService;
+
+    @Autowired
+    private ApiBranchService apiBranchService;
+
+    /**
+     * 次卡消费
+     *
+     * @param request
+     * @return
+     */
+    @RequestMapping("/countcardpay")
+    @ResponseBody
+    public ZLResult countcardpay(HttpServletRequest request) {
+        Map<String, Object> params = getParams();
+        //次卡支付
+        String countcardpays = MapUtils.getString(params, "countcardpays", "");
+
+        if (StringUtils.isEmpty(countcardpays)) {
+            throw new ServiceException(ServiceException.PARAM_MISSING);
+        }
+
+        //次卡参数
+        List<Map<String, Object>> countcardList = getCountcardList(countcardpays, params);
+
+        ZLRpcResult zlRpcResult = null;
+
+        try {
+            //修改会员的次卡消费次数
+           // zlRpcResult = apiMemberService.updateCountcardpay(countcardList);
+        } catch (Exception ex) {
+            throw new ServiceException(ServiceException.SYS_ERROR);
+        }
+
+        //判断返回结果
+        if (!zlRpcResult.success()) {
+            throw new ServiceException(zlRpcResult.getErrorMsg());
+        }
+        Map<String, Object> payresult = zlRpcResult.getMap();
+        //计次卡消费通知
+        try {
+            sendMessage(payresult, params);
+        } catch (Exception e1) {
+            logger.error("充值短信提醒发送失败!");
+        }
+
+        return ZLResult.Success(zlRpcResult.getData());
+    }
+
+    /**
+     * 次卡消费
+     *
+     * @param request
+     * @return
+     */
+    @RequestMapping("/newcountcardpay")
+    @ResponseBody
+    public ZLResult newcountcardpay(HttpServletRequest request) {
+        Map<String, Object> params = getParams();
+        //次卡支付
+        String countcardpays = MapUtils.getString(params, "countcardpays", "");
+
+        if (StringUtils.isEmpty(countcardpays)) {
+            throw new ServiceException(ServiceException.PARAM_MISSING);
+        }
+
+        ZLRpcResult zlRpcResult = null;
+
+        try {
+            //修改会员的次卡消费次数
+            zlRpcResult = apiMemberService.updateNewCountcardpay(params);
+        } catch (Exception ex) {
+            throw new ServiceException(ServiceException.SYS_ERROR);
+        }
+
+        //判断返回结果
+        if (!zlRpcResult.success()) {
+            throw new ServiceException(zlRpcResult.getErrorMsg());
+        }
+
+        Map<String, Object> payresult = zlRpcResult.getMap();
+        //计次卡消费通知
+        try {
+            sendMessage(payresult, params);
+        } catch (Exception e1) {
+            logger.error("充值短信提醒发送失败!");
+        }
+
+        return ZLResult.Success(zlRpcResult.getData());
+    }
+
+    /**
+     * 计次卡消费通知
+     *
+     * @param payresult
+     * @param params
+     */
+    private void sendMessage(Map<String, Object> payresult, Map<String, Object> params) {
+
+        ////检查微信设置的sms的状态
+        int flag = checkSmsStatus(params);
+
+        if (MapUtils.isNotEmpty(payresult) && flag==1) {
+            Map<String, Object> data = new HashMap<String, Object>();
+            String templateCode = Contants.SMS_147415066;
+            String telephone = MapUtils.getString(payresult, "telephone", "");
+
+            data.put("shopcode", MapUtils.getString(params, "shopcode"));
+            data.put("type", Contants.SMS_MEMBER_COUNTCARD_PAY_TYPE);
+            data.put("loginuserid", MapUtils.getString(params, "loginuserid"));
+            data.put("branchcode", MapUtils.getString(params, "branchcode"));
+            data.put("branchname", MapUtils.getString(params, ZLConstant.LOGIN_USER_BRANCH_NAME));
+
+            //本次消费使用次卡
+            data.put("changecount", MapUtils.getDoubleValue(payresult, "changecount"));
+            //剩余次卡
+            data.put("count", MapUtils.getDoubleValue(payresult, "count"));
+
+            JSONObject paramsJson = JSONObject.fromObject(data);
+
+            logger.info("短信信息paramsJson" + paramsJson);
+            //发送短信
+            apiSmsService.sendSms(telephone, templateCode, data);
+
+        }
+    }
+
+    private int checkSmsStatus(Map<String, Object> params) {
+
+        ZLRpcResult zlRpcResult = new ZLRpcResult();
+
+        Map<String, Object> result = new HashMap<>();
+        String shopcode = MapUtils.getString(params, "shopcode");
+        String branchcode = MapUtils.getString(params, "branchcode");
+        String smsparam = Contants.SMS_CIKACHANGE;
+
+        result.put("shopcode",shopcode );
+        result.put("branchcode",branchcode );
+        result.put("smsparam", smsparam);
+
+        zlRpcResult = apiBranchService.querySMSStatus(result);
+        int flag = (int) zlRpcResult.getData();
+        return flag;
+    }
+
+    /**
+     * 校验次卡消费参数-王国银
+     *
+     * @param params
+     */
+    private void checkParams(Map<String, Object> params) {
+
+        String shopcode = MapUtils.getString(params, "shopcode");//商户编码
+
+        String branchcode = MapUtils.getString(params, "branchcode");//门店编码
+
+        String loginuserid = MapUtils.getString(params, "loginuserid");//收银ID
+
+        String countcardid = MapUtils.getString(params, "countcardid");//次卡类型ID
+
+        String recordid = MapUtils.getString(params, "recordid");//实体卡ID
+
+        String countcardnums = MapUtils.getString(params, "countcardnums");//销售次数
+
+        String countcardamount = MapUtils.getString(params, "countcardamount");//消费金额
+
+        if (StringUtils.isEmpty(shopcode)) {
+            throw new ServiceException(ServiceException.PARAM_MISSING);
+        }
+        if (StringUtils.isEmpty(branchcode)) {
+            throw new ServiceException(ServiceException.PARAM_MISSING);
+        }
+        if (StringUtils.isEmpty(loginuserid)) {
+            throw new ServiceException(ServiceException.PARAM_MISSING);
+        }
+        if (StringUtils.isEmpty(countcardid)) {
+            throw new ServiceException(ServiceException.PARAM_MISSING);
+        }
+        if (StringUtils.isEmpty(recordid)) {
+            throw new ServiceException(ServiceException.PARAM_MISSING);
+        }
+        if (StringUtils.isEmpty(countcardnums)) {
+            throw new ServiceException(ServiceException.PARAM_MISSING);
+        }
+        if (StringUtils.isEmpty(countcardamount)) {
+            throw new ServiceException(ServiceException.PARAM_MISSING);
+        }
+    }
+
+    /**
+     * 解析返回字符串
+     *
+     * @param countcardpays
+     * @param params
+     */
+    private List<Map<String, Object>> getCountcardList(String countcardpays, Map<String, Object> params) {
+
+        List<Map<String, Object>> resultList = new ArrayList<Map<String, Object>>();
+
+        try {
+
+            //转换成JsonArray
+            JSONArray countcardJsonArray = JSONArray.fromObject(countcardpays);
+
+            //封装次卡支付信息
+            Map<String, Object> countcardMap = new HashMap<String, Object>();
+
+            for (int i = 0; i < countcardJsonArray.size(); i++) {
+
+                //取出每个对象
+                JSONObject countcardJson = countcardJsonArray.getJSONObject(i);
+                countcardMap = countcardJson;
+                countcardMap.put(Contants.LOGIN_USER_ID, MapUtils.getString(params, Contants.LOGIN_USER_ID, ""));//收银用户
+                countcardMap.put("branchcode", MapUtils.getString(params, Contants.LOGIN_USER_BRANCH_CODE, ""));//门店编码
+                countcardMap.put("shopcode", MapUtils.getString(params, "shopcode", ""));//商户编码
+
+                //校验参数
+                checkParams(countcardMap);
+
+                resultList.add(countcardMap);
+            }
+
+        } catch (Exception ex) {
+            throw new ServiceException(ServiceException.CODE_20302);
+        }
+
+        return resultList;
+    }
+}

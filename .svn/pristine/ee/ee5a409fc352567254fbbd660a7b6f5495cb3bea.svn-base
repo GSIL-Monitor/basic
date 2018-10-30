@@ -1,0 +1,191 @@
+package com.wgb.controller.mt.retail;
+
+import com.wgb.bean.ZLResult;
+import com.wgb.controller.mt.MTBaseController;
+import com.wgb.dubbo.ZLRpcResult;
+import com.wgb.exception.ServiceException;
+import com.wgb.service.dubbo.pays.web.ApitPayTypeService;
+import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import javax.servlet.http.HttpServletRequest;
+import java.util.Map;
+import java.util.regex.Pattern;
+
+/**
+ * Created by sjk on 2018/5/14.
+ */
+@Controller
+@RequestMapping("/sales/paytype")
+public class MTPaytypeController extends MTBaseController {
+    protected final Logger logger = LoggerFactory.getLogger(getClass());
+    @Autowired
+    private ApitPayTypeService apitPayTypeService;
+
+    /*零售2.0*/
+    @RequestMapping("/query")
+    @ResponseBody
+    public ZLResult query(HttpServletRequest request) {
+
+        //获取入参数据
+        Map<String, Object> params =  getParams();
+        //定义返回对象
+        ZLRpcResult zlRpcResult = new ZLRpcResult();
+        try {
+            //系统调用
+            zlRpcResult = apitPayTypeService.queryPageList(params);
+        } catch (Exception ex) {
+            //系统级别异常
+            throw new ServiceException(ServiceException.SYS_ERROR);
+        }
+        //判断返回结果
+        if (!zlRpcResult.success()) {
+            throw new ServiceException(zlRpcResult.getErrorMsg());
+        }
+
+        return ZLResult.Success(zlRpcResult.getData());
+    }
+
+    /*零售2.0*/
+    @RequestMapping("/add")
+    @ResponseBody
+    public ZLResult add(HttpServletRequest request) {
+
+        //获取入参数据
+        Map<String, Object> params =  getParams();
+        String result = checkParams(params);
+        if (StringUtils.isNotEmpty(result)) {
+            throw new ServiceException(result);
+        }
+        //定义返回对象
+        ZLRpcResult zlRpcResult = new ZLRpcResult();
+        try {
+            //系统调用
+            zlRpcResult = apitPayTypeService.saveObject(params);
+        } catch (Exception ex) {
+            //系统级别异常
+            throw new ServiceException(ServiceException.SYS_ERROR);
+        }
+        //判断返回结果
+        if (!zlRpcResult.success()) {
+            throw new ServiceException(zlRpcResult.getErrorMsg());
+        }
+        return ZLResult.Success();
+    }
+
+    /*零售2.0*/
+    @RequestMapping("/update")
+    @ResponseBody
+    public ZLResult update(HttpServletRequest request) {
+
+        //获取入参数据
+        Map<String, Object> params =  getParams();
+
+        //校验参数
+        String result = checkParams(params);
+        if (StringUtils.isNotEmpty(result)) {
+            throw new ServiceException(result);
+        }
+
+        String id = MapUtils.getString(params, "id");
+        if(StringUtils.isEmpty(id)){
+            throw new ServiceException("参数id缺失！");
+        }
+        //定义返回对象
+        ZLRpcResult zlRpcResult = new ZLRpcResult();
+        try {
+            //系统调用
+            zlRpcResult = apitPayTypeService.updateObject(params);
+        } catch (Exception ex) {
+            //系统级别异常
+            throw new ServiceException(ServiceException.SYS_ERROR);
+        }
+        //判断返回结果
+        if (!zlRpcResult.success()) {
+            throw new ServiceException(zlRpcResult.getErrorMsg());
+        }
+
+        return ZLResult.Success();
+    }
+
+    /*零售2.0*/
+    @RequestMapping("/delObject")
+    @ResponseBody
+    public ZLResult delObject(HttpServletRequest request) {
+
+        //获取入参数据
+        Map<String, Object> params =  getParams();
+        String id = MapUtils.getString(params, "id", "");
+        if (StringUtils.isEmpty(id)) {
+            throw new ServiceException("参数id缺失！");
+        }
+        //定义返回对象
+        ZLRpcResult zlRpcResult = new ZLRpcResult();
+        try {
+            //系统调用
+            zlRpcResult=apitPayTypeService.deleteObject(params);
+        } catch (Exception ex) {
+            //系统级别异常
+            throw new ServiceException(ServiceException.SYS_ERROR);
+        }
+        //判断返回结果
+        if (!zlRpcResult.success()) {
+            throw new ServiceException(zlRpcResult.getErrorMsg());
+        }
+
+        return ZLResult.Success();
+    }
+
+    @RequestMapping("/updateIsshow")
+    @ResponseBody
+    public ZLResult updateIsshow(HttpServletRequest request) {
+
+        //获取入参数据
+        Map<String, Object> params =  getParams();
+        String paytypecode = MapUtils.getString(params, "paytypecode", "");
+        String isshow = MapUtils.getString(params, "isshow", "");
+        if (StringUtils.isEmpty(paytypecode)) {
+            throw new ServiceException("参数paytypecode缺失！");
+        }
+        if (StringUtils.isEmpty(isshow)) {
+            throw new ServiceException("参数isshow缺失！");
+        }
+        //定义返回对象
+        ZLRpcResult zlRpcResult = new ZLRpcResult();
+        try {
+            //系统调用
+            zlRpcResult = apitPayTypeService.updateIsshow(params);
+        } catch (Exception ex) {
+            //系统级别异常
+            throw new ServiceException(ServiceException.SYS_ERROR);
+        }
+
+        //判断返回结果
+        if (!zlRpcResult.success()) {
+            throw new ServiceException(zlRpcResult.getErrorMsg());
+        }
+        return ZLResult.Success();
+    }
+
+    private String checkParams(Map<String, Object> params) {
+        //支付名称长度限制为25
+        Pattern patternName = Pattern.compile("^(?!\\s).{0,24}[^\\s]$");
+        String name = MapUtils.getString(params, "name", "");
+        if (StringUtils.isEmpty(name) || !patternName.matcher(name).matches()) {
+            return "支付名称不能为空，且名称字数应小于25位";
+        }
+
+        Pattern regEx = Pattern.compile("^[\\u4e00-\\u9fa5_a-zA-Z0-9]+$");
+        if ( !regEx.matcher(name).matches()) {
+            return "支付名称不能包含特殊字符";
+        }
+
+        return "";
+    }
+}

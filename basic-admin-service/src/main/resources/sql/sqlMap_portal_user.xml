@@ -1,0 +1,524 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<sqlMap namespace="shardName.com.wgb.service.impl.portal.PortalUserServiceImpl" jdbcTimeout="5">
+
+    <sql id="getUserList">
+        <![CDATA[
+		    select a.*,
+		    (select group_concat(c.name) from portal_user_role b inner join portal_role c on b.roleid = c.id where b.userid = a.id and b.del = 0) as rolenames
+			from portal_user a
+			where a.shopcode = :shopcode and a.del = 0
+		    <#if keyword?? && keyword != ''>
+				and	(a.username like '%' :keyword '%' or a.fullname like  '%' :keyword '%')
+		    </#if>
+		    <#if loginuserbranchishead == '0'>
+                 and a.branchcode = :loginuserbranchcode
+            </#if>
+            order by branchcode,username
+
+    	]]>
+    </sql>
+
+    <sql id="queryForPage">
+        <![CDATA[
+		    select *
+			from portal_user a
+			where a.shopcode = :shopcode and a.del = 0
+		    <#if keyword?? && keyword != ''>
+				and	(a.username like '%' :keyword '%' or a.fullname like  '%' :keyword '%')
+		    </#if>
+		    <#if branchonly?? && branchonly != ''>
+				a.branchcode = :loginuserbranchcode
+		    </#if>
+		     <#if loginuserbranchishead == '0'>
+                and a.branchcode = :loginuserbranchcode
+            </#if>
+    	]]>
+    </sql>
+
+    <sql id="getBranchUserList">
+        <![CDATA[
+		    select 	*
+			from portal_user a
+			where a.shopcode = :shopcode and a.branchcode = :branchcode and a.del = 0 order by a.createtime
+    	]]>
+    </sql>
+
+    <sql id="checkAccount">
+        <![CDATA[
+		    select count(1) from portal_user where account = :account and del = 0
+    	]]>
+    </sql>
+
+    <sql id="getUserInfo">
+        <![CDATA[
+		    select 	*
+			 from portal_user a
+			 where a.shopcode = :shopcode AND a.del=0
+			 <#if id?? && id != ''>
+			 	and a.id = :id
+			 </#if>
+			 <#if username?? && username != ''>
+			 	and a.username = :username
+			 </#if>
+    	]]>
+    </sql>
+
+    <sql id="getSystemUserInfo">
+        <![CDATA[
+		    select 	*
+			 from portal_user a
+			 where a.shopcode = :shopcode AND a.del=0
+			 <#if loginuserid?? && loginuserid != ''>
+			 	and a.id = :loginuserid
+			 </#if>
+    	]]>
+    </sql>
+
+    <sql id="getUserHeadPic">
+        <![CDATA[
+		    select a.id,a.headpic
+			 from portal_user a where a.shopcode = :shopcode and a.id = :loginuserid and a.del = 0
+    	]]>
+    </sql>
+
+    <sql id="insertUser">
+        <![CDATA[
+		    INSERT INTO portal_user(account,username, email, tel, password,fullname,createtime,createuser,ordernum,remark,branchname,branchcode,ishead,shopname,flag,shopcode,headpic,mindiscount,iscashier,isbuyprice,cashiergrant,expirestime)
+			VALUES(
+			<#if account?? && account != ''>
+				:account,
+				<#else>
+				null,
+			</#if>
+			<#if username?? && username != ''>
+				:username,
+				<#else>
+				null,
+			</#if>
+			<#if email?? && email != ''>
+				:email,
+				<#else>
+				null,
+			</#if>
+			<#if tel?? && tel != ''>
+				:tel,
+				<#else>
+				null,
+			</#if>
+			<#if password?? && password != ''>
+				:password,
+				<#else>
+				null,
+			</#if>
+			<#if fullname?? && fullname != ''>
+				:fullname,
+				<#else>
+				null,
+			</#if>
+			now(),
+			:loginuserid,
+			0,
+			<#if remark?? && remark != ''>
+				:remark,
+				<#else>
+				null,
+			</#if>
+			<#if branchname?? && branchname != ''>
+				:branchname,
+				<#else>
+				null,
+			</#if>
+			<#if branchcode?? && branchcode != ''>
+				:branchcode,
+				<#else>
+				null,
+			</#if>
+				<#if ishead?? && ishead != ''>
+				:ishead,
+				<#else>
+				null,
+			</#if>
+			<#if shopname?? && shopname != ''>
+				:shopname,
+				<#else>
+				null,
+			</#if>
+			<#if flag?? && flag != ''>
+				:flag,
+				<#else>
+				null,
+			</#if>
+			:shopcode,
+			<#if headpic?? && headpic != ''>
+				:headpic,
+				<#else>
+				null,
+			</#if>
+			<#if mindiscount?? && mindiscount != ''>
+				:mindiscount,
+				<#else>
+				null,
+			</#if>
+			<#if iscashier?? && iscashier != ''>
+				:iscashier,
+				<#else>
+				null,
+			</#if>
+			<#if isbuyprice?? && isbuyprice != ''>
+				:isbuyprice,
+				<#else>
+				null,
+			</#if>
+			<#if cashiergrant?? && cashiergrant != ''>
+				:cashiergrant,
+				<#else>
+				null,
+			</#if>
+			<#if expirestime?? && expirestime != ''>
+				:expirestime
+				<#else>
+				now()
+			</#if>
+
+			)
+    	]]>
+    </sql>
+
+    <sql id="insertUserRole">
+        <![CDATA[
+		    INSERT INTO portal_user_role(userid, roleid)
+		    VALUES(:userid,:roleid)
+    	]]>
+    </sql>
+
+    <sql id="updateUser">
+        <![CDATA[
+		    update portal_user
+		    set updatetime = now()
+		    	,updateuser = :loginuserid
+		    <#if account??>
+		    	,account = :account
+		    </#if>
+		    <#if username??>
+		    	,username = :username
+		    </#if>
+		    <#if headpic??>
+		    	,headpic = :headpic
+		    </#if>
+		    <#if email??>
+		    	,email = :email
+		    </#if>
+		    <#if tel??>
+		    	,tel = :tel
+		    </#if>
+		    <#if password?? && password != ''>
+		    	,password = :password
+		     </#if>
+		    <#if fullname??>
+		    	,fullname = :fullname
+		        </#if>
+		    <#if flag??>
+				,flag = :flag
+            </#if>
+            <#if ishead??>
+				,ishead = :ishead
+            </#if>
+			<#if branchname??>
+			,branchname = :branchname
+			    </#if>
+			<#if branchcode??>
+			,branchcode = :branchcode
+			</#if>
+			<#if mindiscount??>
+			,mindiscount = :mindiscount
+			</#if>
+			<#if iscashier??>
+			,iscashier = :iscashier
+			</#if>
+			<#if isbuyprice??>
+			,isbuyprice = :isbuyprice
+			</#if>
+			<#if cashiergrant??>
+			,cashiergrant = :cashiergrant
+			</#if>
+			<#if expirestime??>
+			,expirestime = :expirestime
+			</#if>
+		    where id = :id and shopcode = :shopcode
+    	]]>
+    </sql>
+
+    <sql id="delUser">
+        <![CDATA[
+           update portal_user set updatetime = now(), updateuser = :loginuserid , del = 1
+           where shopcode = :shopcode and id = :id and del = 0
+   	]]>
+
+    </sql>
+
+    <sql id="getAccountByToken">
+        <![CDATA[
+		    select account from portal_user where token = :token
+    	]]>
+    </sql>
+
+	<sql id="getLoginUser">
+        <![CDATA[
+		    select
+              a.id,
+              a.account,
+              a.password,
+              a.fullname,
+              a.ordernum,
+              a.createtime,
+              a.createuser,
+              a.updatetime,
+              a.updateuser,
+              a.remark,
+              a.flag,
+              a.shopcode,
+              a.email,
+              a.tel,
+              a.username,
+              a.headpic,
+              a.mindiscount,
+              a.isbuyprice,
+              a.isrecharge,
+              a.businesscode,
+              a.devicecode,
+              a.required,
+              a.del,
+              a.branchcode,
+              a.branchname,
+              a.ishead,
+              a.shopname,
+              date_format(c.expirestime, '%Y-%m-%d') as "expirestime",
+              a.isofficial,
+              a.iscashier,
+              b.shopstate,
+              b.shopname,
+              b.softwaretype,
+              b.industryid,
+              b.industryname,
+              c.membermodel,
+              c.canmodifyprice,
+              c.groupcode,
+              c.ismeituanmapping,
+              c.canmodifyprice,
+              c.isused,
+              c.isbranchpay,
+              c.defaultdistpricetype,
+              c.defaultdistcentercode,
+              c.referpricebranchcode
+		  	from ( portal_user a inner join pub_shop b on a.shopcode = b.shopcode )
+		  	inner join pub_branch c on  a.branchcode = c.branchcode and a.shopcode = c.shopcode
+		  	where a.del = 0
+			<#if account?? && account != ''>
+			AND	a.account = :account
+			</#if>
+			<#if username?? && username != ''>
+			AND	a.username = :username
+			</#if>
+			<#if password?? && password != ''>
+			AND	a.password = :password
+			</#if>
+			<#if shopcode?? && shopcode != ''>
+			AND	a.shopcode = :shopcode
+			</#if>
+    	]]>
+    </sql>
+
+    <sql id="getRegUser">
+        <![CDATA[
+		    select *
+			from portal_user a where a.account = :account and del = 0
+    	]]>
+    </sql>
+
+    <sql id="getUserForList">
+        <![CDATA[
+		    select *
+			from portal_user a where a.shopcode = :shopcode and id in (:idList) and del = 0
+    	]]>
+    </sql>
+
+   <sql id="updateUserExpirestime">
+        <![CDATA[
+		    update portal_user
+			SET  expirestime=:expirestime,isofficial=1 where shopcode = :shopcode and branchcode=:branchcode and del=0
+    	]]>
+    </sql>
+
+    <sql id="getUserAccount">
+        <![CDATA[
+		    select *
+			from portal_user a where a.shopcode = :shopcode and id = :loginuserid
+    	]]>
+    </sql>
+
+    <sql id="updatePassword">
+        <![CDATA[
+		    update portal_user set password = :password where account = :account and del = 0
+    	]]>
+    </sql>
+
+    <sql id="updateHeadPic">
+        <![CDATA[
+		    update portal_user set updatetime = now(),updateuser = :loginuserid
+		    <#if headpic??>
+		    	<#if headpic != ''>
+		    		,headpic = :headpic
+		    		<#else>
+		    		,headpic = null
+		    	</#if>
+		    </#if>
+		    where id = :id and shopcode = :shopcode and del = 0
+    	]]>
+    </sql>
+
+    <sql id="updateUserShopInfo">
+        <![CDATA[
+		    update portal_user set updatetime = now(),updateuser = :loginuserid,shopname = :shopname,ishead=:loginuserbranchishead
+		    where shopcode = :shopcode and del = 0
+    	]]>
+    </sql>
+
+	<sql id="updateUserBranchName">
+        <![CDATA[
+		    update portal_user set branchname = :branchname where shopcode = :shopcode and branchcode = :branchcode and del = 0
+    	]]>
+    </sql>
+
+    <sql id="updateGrant">
+        <![CDATA[
+		    update portal_user set updatetime = now(),updateuser = :loginuserid,isrecharge = :isrecharge
+			<#if cashiergrant??>
+		    	<#if cashiergrant != ''>
+		    	,cashiergrant = :cashiergrant
+		    	<#else>
+		    	,cashiergrant = null
+		    	</#if>
+		    </#if>
+		    where id = :id and shopcode = :shopcode and del = 0
+    	]]>
+    </sql>
+
+    <sql id="addReg">
+        <![CDATA[
+		    INSERT INTO portal_user(account,username, email, tel, password,fullname,createtime,createuser,ordernum,remark,branchname,branchcode,flag,shopcode,shopname,ishead,headpic,mindiscount,iscashier,isbuyprice,cashiergrant,expirestime,isofficial,required)
+			VALUES(
+			<#if account?? && account != ''>
+				:account,
+				<#else>
+				null,
+			</#if>
+			<#if username?? && username != ''>
+				:username,
+				<#else>
+				null,
+			</#if>
+			<#if email?? && email != ''>
+				:email,
+				<#else>
+				null,
+			</#if>
+			<#if tel?? && tel != ''>
+				:tel,
+				<#else>
+				null,
+			</#if>
+			<#if password?? && password != ''>
+				:password,
+				<#else>
+				null,
+			</#if>
+			<#if fullname?? && fullname != ''>
+				:fullname,
+				<#else>
+				null,
+			</#if>
+			now(),
+			0,
+			0,
+			<#if remark?? && remark != ''>
+				:remark,
+				<#else>
+				null,
+			</#if>
+			<#if branchname?? && branchname != ''>
+				:branchname,
+				<#else>
+				null,
+			</#if>
+			<#if branchcode?? && branchcode != ''>
+				:branchcode,
+				<#else>
+				null,
+			</#if>
+			1,
+			:shopcode,
+			<#if shopname?? && shopname != ''>
+				:shopname,
+				<#else>
+				null,
+			</#if>
+			<#if ishead?? && ishead != ''>
+				:ishead,
+				<#else>
+				0,
+			</#if>
+			<#if headpic?? && headpic != ''>
+				:headpic,
+				<#else>
+				null,
+			</#if>
+			<#if mindiscount?? && mindiscount != ''>
+				:mindiscount,
+				<#else>
+				null,
+			</#if>
+			<#if iscashier?? && iscashier != ''>
+				:iscashier,
+				<#else>
+				null,
+			</#if>
+			<#if isbuyprice?? && isbuyprice != ''>
+				:isbuyprice,
+				<#else>
+				null,
+			</#if>
+			<#if cashiergrant?? && cashiergrant != ''>
+				:cashiergrant,
+				<#else>
+				null,
+			</#if>
+			<#if expirestime?? && expirestime != ''>
+				:expirestime,
+				<#else>
+				now(),
+			</#if>
+			<#if isofficial?? && isofficial != ''>
+				:isofficial,
+				<#else>
+				0,
+			</#if>
+			<#if required?? && required != ''>
+				:required
+				<#else>
+				0
+			</#if>
+
+			)
+    	]]>
+    </sql>
+
+    <sql id="getCacheList">
+        <![CDATA[
+		    select * from portal_user where shopcode = :shopcode and del = 0 and flag = 1
+		    <#if branchcode?? && branchcode != ''>
+		        and branchcode = :branchcode
+		    </#if>
+    	]]>
+    </sql>
+
+</sqlMap>

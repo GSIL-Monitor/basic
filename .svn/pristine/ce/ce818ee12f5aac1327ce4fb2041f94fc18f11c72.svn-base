@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:dubbo="http://code.alibabatech.com/schema/dubbo"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://code.alibabatech.com/schema/dubbo http://code.alibabatech.com/schema/dubbo/dubbo.xsd">
+
+    <dubbo:provider timeout="5000" filter="dubboContextFilter" />
+
+    <!-- 自动查找可用的端口号 -->
+    <bean id="dynamicDubboPortReaderDao" class="com.wgb.dubbo.DynamicDubboPortReaderImpl"
+          init-method="init"/>
+
+    <!-- 接口监控 -->
+    <dubbo:monitor protocol="registry"/>
+
+    <!-- 用dubbo协议在20880端口暴露服务 -->
+    <dubbo:protocol name="dubbo" threadpool="fixed" threads="200" accepts="1000"/>
+
+    <!-- 运维平台统一服务接口 -->
+    <dubbo:service interface="com.wgb.service.dubbo.basic.admin.AdminBasicService" ref="adminBasicServiceImpl" retries="0" timeout="120000"/>
+
+    <!-- 商户平台统一服务接口 -->
+    <dubbo:service interface="com.wgb.service.dubbo.basic.web.PortalBasicService" ref="portalBasicServiceImpl" retries="0" timeout="120000" />
+
+    <!-- 门店列表统一服务接口 -->
+    <dubbo:service interface="com.wgb.service.dubbo.basic.BasicBranchService" ref="basicBranchServiceImpl" retries="0" timeout="120000"/>
+
+</beans>

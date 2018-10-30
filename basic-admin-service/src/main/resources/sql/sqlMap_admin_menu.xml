@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<sqlMap namespace="shardName.com.wgb.service.impl.admin.AdminMenuServiceImpl" jdbcTimeout="5">
+
+    <sql id="getMenuByUserId">
+        <![CDATA[
+        	select menus from admin_role a inner join admin_user_role b on a.id = b.roleid where b.userid = :userid
+    	]]>
+    </sql>
+
+	<sql id="getMenuListByIds">
+		<![CDATA[
+		    SELECT a.id,a.pid,a.name,a.url,b.domainurl,a.level,a.type,a.sysname
+		    from admin_menu a left join admin_domain b on a.domainid = b.id where a.id in (:menuIds) order by a.ordernum
+    	]]>
+	</sql>
+
+</sqlMap>

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <option name="DEFAULT_COMPILER" value="Javac" />
+    <resourceExtensions />
+    <annotationProcessing>
+      <profile default="true" name="Default" enabled="false">
+        <processorPath useClasspath="true" />
+      </profile>
+      <profile default="false" name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="true" />
+        <module name="basic-admin" />
+        <module name="basic-admin-intf" />
+        <module name="basic-admin-service" />
+        <module name="basic-common-intf" />
+        <module name="basic-common-service" />
+        <module name="basic-util" />
+        <module name="basic-web" />
+        <module name="basic-web-intf" />
+        <module name="basic-web-service" />
+      </profile>
+    </annotationProcessing>
+  </component>
+</project>

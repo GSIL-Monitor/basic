@@ -1,0 +1,220 @@
+package com.wgb.controller.mb;
+
+import com.wgb.cache.RedisFactory;
+import com.wgb.dubbo.ZLRpcResult;
+import com.wgb.exception.ServiceException;
+import com.wgb.service.dubbo.pays.admin.ApiPayService;
+import com.wgb.service.dubbo.urms.admin.ApiShopService;
+import com.wgb.service.dubbo.wxms.web.ApitVisitLogService;
+import com.wgb.service.dubbo.wxms.web.ApitWxShopMemberService;
+import com.wgb.util.CommonUtil;
+import com.wgb.util.HttpRequestConstant;
+import com.wgb.util.UUIDGenerator;
+import com.wgb.util.WeixinCommon;
+import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.net.URLEncoder;
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * Created by wgb on 2018/8/6 0006.
+ */
+@Controller
+@RequestMapping("/login")
+public class MBWXLoginController extends MBBaseController {
+
+    protected final Logger logger = LoggerFactory.getLogger(getClass());
+
+    @Autowired
+    private ApitWxShopMemberService apitWxShopMemberService;
+
+    @Autowired
+    private ApiPayService apiPayService;
+
+    @Autowired
+    private ApiShopService apiShopService;
+
+    @Autowired
+    private ApitVisitLogService apitVisitLogService;
+
+    /**
+     * @param params
+     * @return
+     */
+    private Map<String, Object> getMemberInfo(Map<String, Object> params) {
+
+        String code = MapUtils.getString(params, "code");
+        String shopcode = MapUtils.getString(params, "shopcode");
+        ZLRpcResult rpcResult = apiPayService.getPayConfig(params);
+        Map<String, Object> payConfig = rpcResult.getMap();
+        String wxPubAppId = MapUtils.getString(payConfig, "wxpubappid");
+        String wxPubAppSecret = MapUtils.getString(payConfig, "wxpubappsecret");
+        Map<String, Object> memberInfo = null;
+
+        logger.info("微信客户端登录接口，wxPubAppId:" + wxPubAppId);
+        logger.info("微信客户端登录接口，wxPubAppSecret:" + wxPubAppSecret);
+
+        //必须配置微信公众号参数
+        if (StringUtils.isNotEmpty(wxPubAppId) && StringUtils.isNotEmpty(wxPubAppSecret)) {
+
+            logger.info("商户公众号参数已经配置，wxPubAppId:" + wxPubAppId + ",wxPubAppSecret:" + wxPubAppSecret);
+
+            // 获取授权access_token
+            Map<String, Object> weixinOauth2Token = WeixinCommon.getOauth2AccessToken(wxPubAppId, wxPubAppSecret, code);
+
+            logger.info("获取access_token map为:" + weixinOauth2Token);
+
+            if (MapUtils.isNotEmpty(weixinOauth2Token)) {
+
+                // 用户标识
+                String openId = MapUtils.getString(weixinOauth2Token, "openid");
+
+                logger.info("获取openid:" + openId);
+
+                Map<String, Object> p1 = new HashMap<String, Object>();
+                p1.put("openid", openId);
+                p1.put("shopcode", shopcode);
+
+                // 根据shopcode和membercode查询用户数据库
+                ZLRpcResult rpcResult1 = apitWxShopMemberService.getLoginMemberInfo(p1);
+                memberInfo = rpcResult1.getMap();
+
+                logger.info("从shopmemeber表里查询的用户:" + memberInfo);
+
+                if (MapUtils.isEmpty(memberInfo)) {
+
+                    // 网页授权接口访问凭证
+                    String accessToken = MapUtils.getString(weixinOauth2Token, "access_token");
+                    // 获取用户信息
+                    memberInfo = WeixinCommon.getUserInfo(accessToken, openId);
+
+                    logger.info("从微信第三方接口查询的用户:" + memberInfo);
+                    if (MapUtils.isNotEmpty(memberInfo)) {
+                        memberInfo.put("shopcode", shopcode);
+                        ZLRpcResult rpcResult2 = apitWxShopMemberService.saveLoginMemberInfo(memberInfo);
+                        memberInfo = rpcResult2.getMap();
+                        logger.info("微信第三方获取的用户信息已经保存到shopmember表里:" + memberInfo);
+                    }
+                }
+            }
+        }
+
+        return memberInfo;
+    }
+    //前端判断完需要走微信授权调用
+    @RequestMapping("/entry/towxlogin")
+    public void towxlogin(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        logger.info("进入授权步骤！");
+        Map<String, Object> params = getParams();
+
+        String shopcode = MapUtils.getString(params, "shopcode");
+        String source = MapUtils.getString(params, "source");
+
+        logger.info("获取微信授权的参数！"+params);
+        String  redirectUri = CommonUtil.getHttpFullUrl(request, request.getContextPath() + "/login/entry/wxlogin.action?shopcode=" + shopcode + "&redirect=" + URLEncoder.encode(source, "UTF-8"));
+        logger.info("重定向的redirectUri："+redirectUri);
+        Map<String, Object> p1 = new HashMap<String, Object>();
+        p1.put("shopcode", shopcode);
+        ZLRpcResult rpcResult = apiPayService.getPayConfig(p1);
+        Map<String, Object> payConfig = rpcResult.getMap();
+
+            logger.info("没有获取到用户信息，准备走重定向获取的payconfig:" + payConfig);
+        String wxPubAppId = MapUtils.getString(payConfig, "wxpubappid");
+        String oauth2Url = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=" + wxPubAppId + "&redirect_uri=" + URLEncoder.encode(redirectUri, "UTF-8") + "&response_type=code&scope=snsapi_userinfo&state=STATE&connect_redirect=1#wechat_redirect";
+        logger.info("没有获取到用户信息，准备走重定向url:" + oauth2Url);
+        response.sendRedirect(oauth2Url);
+        return;
+    }
+    //重定向进入到这步
+    @RequestMapping("/entry/wxlogin")
+    public void login(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        Map<String, Object> params = getPubParams();
+        String code = MapUtils.getString(params, "code");
+        String shopcode = MapUtils.getString(params, "shopcode");
+        String redirect = MapUtils.getString(params, "redirect");
+        logger.info("授权成功前的重定向路径："+redirect);
+        logger.info("微信客户端登录接口，code:" + code);
+        logger.info("微信客户端登录接口，shopcode:" + shopcode);
+        logger.info("微信客户端登录接口，redirect:" + redirect);
+
+        if (StringUtils.isEmpty(shopcode) || StringUtils.isEmpty(redirect)) {
+            throw new ServiceException(ServiceException.OPER_ERROR);
+        }
+
+        // 用户同意授权
+        if (!"authdeny".equals(code)) {
+
+            Map<String, Object> memberInfo = null;
+
+            logger.info("微信客户端登录接口，获取会员信息");
+            try {
+                memberInfo = getMemberInfo(params);
+            } catch (Exception ex) {
+                logger.error(ex.getMessage());
+            }
+
+            logger.info("微信客户端登录接口获取会员信息---用户信息为空“抛操作异常”：" + memberInfo);
+
+            if (MapUtils.isEmpty(memberInfo)) {
+                throw new ServiceException(ServiceException.OPER_ERROR);
+            } else {
+
+                ZLRpcResult rpcResult = apiShopService.queryShopByShopCode(params);
+                logger.info("调用RPC查出的信息，调用失败则报“系统异常”：" + rpcResult.getMap());
+                logger.info("rpcResult.success():" + rpcResult.success());
+                if (rpcResult.success()) {
+                    Map<String, Object> shopInfo = rpcResult.getMap();
+                    memberInfo.put("commoditymode", MapUtils.getString(shopInfo, "commoditymode"));
+                    memberInfo.put("membermode", MapUtils.getString(shopInfo, "membermode"));
+                    memberInfo.put("shopname", MapUtils.getString(shopInfo, "shopname"));
+                } else {
+                    throw new ServiceException(ServiceException.SYS_ERROR);
+                }
+
+                String openid = MapUtils.getString(memberInfo, "openid");
+
+                //添加sid到服务根路径
+                Cookie cookie = new Cookie(HttpRequestConstant.MB_TOKEN_ID, openid);
+                cookie.setMaxAge(2592000);
+                cookie.setPath("/");
+                response.addCookie(cookie);
+                logger.info("走授权的时候，往cookie存的值mb_id:" + cookie);
+
+                //前端判断"shopcode_" + openid取到的shopcode和url传的shopcode是否一致，不一致说
+                //明切换公众号了走授权接口
+                cookie = new Cookie("shopcode_" + openid, shopcode);
+                cookie.setMaxAge(2592000);
+                cookie.setPath("/");
+                response.addCookie(cookie);
+
+                //String membercode = MapUtils.getString(memberInfo, "membercode");
+                //String account = shopcode + "_" + membercode;
+                //logger.info("走授权的时候，生成的account:"+account);
+                //RedisFactory.getPassportClient().set(HttpRequestConstant.MB_WX_ACCOUNT_PREFIX + token, account);
+
+                // 记录访问日志
+                Map<String, Object> logParams = new HashMap<>();
+                logParams.put("shopcode", MapUtils.getString(memberInfo, "shopcode"));
+                logParams.put("openid", MapUtils.getString(memberInfo, "openid"));
+                apitVisitLogService.addLog(logParams);
+
+                //这是我们在页面看到的请求
+                logger.info("授权成功后的重定向路径："+redirect);
+                response.sendRedirect(redirect);
+            }
+        } else {
+            throw new ServiceException(ServiceException.OPER_ERROR);
+        }
+    }
+}

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<sqlMap namespace="shardName.com.wgb.service.impl.BranchServiceImpl" jdbcTimeout="5">
+
+	<sql id="getBranchList">
+		<![CDATA[
+		  select
+		  branchname as branchname,
+		  branchcode as branchcode,
+		  shopcode as shopcode,
+		  ifnull(date_format(expirestime,'%Y-%m-%d %H:%i:%s'),'') as expirestime,
+		  ishead as ishead,
+		  groupcode as groupcode
+		  from pub_branch where shopcode=:shopcode and del=0 order by branchcode
+    	]]>
+	</sql>
+
+	<sql id="queryBranchInfo">
+		<![CDATA[
+		  select
+		  a.branchname as branchname,
+		  a.branchcode as branchcode,
+		  a.shopcode as shopcode,
+		  ifnull(date_format(a.expirestime,'%Y-%m-%d %H:%i:%s'),'') as expirestime,
+		  a.ishead as ishead,
+		  a.groupcode as groupcode,
+		  a.membermodel as membermodel,
+		  a.canmodifyprice as canmodifyprice,
+		  a.ismeituanmapping as ismeituanmapping,
+		  a.canmodifyprice as canmodifyprice,
+		  a.defaultdistpricetype as defaultdistpricetype,
+		  a.isbranchpay,
+		  a.isused,
+		  b.shopname as shopname,
+		  b.shopstate as shopstate
+		  from pub_branch a inner join pub_shop b on a.shopcode = b.shopcode where a.shopcode=:shopcode and a.branchcode = :branchcode
+    	]]>
+	</sql>
+
+</sqlMap>

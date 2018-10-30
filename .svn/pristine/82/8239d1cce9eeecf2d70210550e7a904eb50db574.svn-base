@@ -1,0 +1,594 @@
+package com.wgb.controller.mb.xcxsc;
+
+import com.wgb.bean.ZLResult;
+import com.wgb.cache.RedisFactory;
+import com.wgb.controller.mb.MBXCXBaseController;
+import com.wgb.dao.Page;
+import com.wgb.dubbo.ZLRpcResult;
+import com.wgb.exception.ServiceException;
+import com.wgb.service.dubbo.mbms.admin.ApiMemberConfigService;
+import com.wgb.service.dubbo.mbms.admin.ApiMemberGiftService;
+import com.wgb.service.dubbo.mbms.admin.ApiMemberLogsService;
+import com.wgb.service.dubbo.mbms.admin.ApiMemberService;
+import com.wgb.service.dubbo.wxms.web.ApitWxMemberService;
+import com.wgb.service.dubbo.wxms.web.ApitWxShopMemberService;
+import com.wgb.util.HttpRequestConstant;
+import net.sf.json.JSONArray;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
+
+@Controller
+@RequestMapping("/xcxsc/member")
+public class XCXWxMemberController extends MBXCXBaseController {
+    @Autowired
+    private ApitWxMemberService memberService;
+    @Autowired
+    private ApiMemberGiftService apiMemberGiftService;
+    @Autowired
+    private ApiMemberService apiMemberService;
+    @Autowired
+    private ApiMemberConfigService apiMemberConfigService;
+    @Autowired
+    private ApiMemberLogsService apiMemberLogsService;
+    @Autowired
+    private ApitWxShopMemberService apitWxShopMemberService;
+    /**
+     * 个人中心-获取会员信息
+     */
+
+    @RequestMapping("/getMemberInfo")
+    @ResponseBody
+    public ZLResult getMemberInfo() {
+        Map<String, Object> params = getXcxParams();
+        ZLRpcResult zlRpcResult;
+        try {
+            zlRpcResult = memberService.getMemberInfo(params);
+        } catch (ServiceException sx) {
+            throw sx;
+        } catch (Exception ex) {
+            throw new ServiceException(ServiceException.SYS_ERROR);
+        }
+        if (!zlRpcResult.success()) {
+            return ZLResult.Error(zlRpcResult.getErrorMsg());
+        }
+        return ZLResult.Success(zlRpcResult.getData());
+    }
+
+    /**
+     * 查询会员是否已被禁用
+     *
+     * @param request
+     * @param response
+     * @return
+     */
+
+    @RequestMapping("/getMemberUseable")
+    @ResponseBody
+    public ZLResult getMemberUseable(HttpServletRequest request, HttpServletResponse response) {
+        Map<String, Object> params = getXcxParams();
+        ZLRpcResult zlRpcResult;
+        try {
+            zlRpcResult = memberService.getMemberUseable(params);
+        } catch (ServiceException sx) {
+            throw sx;
+        } catch (Exception ex) {
+            throw new ServiceException(ServiceException.SYS_ERROR);
+        }
+        if (!zlRpcResult.success()) {
+            return ZLResult.Error(zlRpcResult.getErrorMsg());
+        }
+        return ZLResult.Success();
+    }
+
+    /**
+     * 查询会员账号余额信息
+     *
+     * @param request
+     * @param response
+     * @return
+     */
+
+    @RequestMapping("/getMemberAmount")
+    @ResponseBody
+    public ZLResult getMemberAmount(HttpServletRequest request, HttpServletResponse response) {
+        Map<String, Object> params = getXcxParams();
+        params.put("telephone", MapUtils.getString(params, "mobile"));
+        ZLRpcResult rpcResult = null;
+        try {
+            rpcResult = apiMemberService.queryMemberInfoSimple(params);
+        } catch (Exception ex) {
+            throw new ServiceException(ServiceException.SYS_ERROR);
+        }
+        //判断返回结果
+        if (!rpcResult.success()) {
+            throw new ServiceException(rpcResult.getErrorMsg());
+        }
+        return ZLResult.Success(rpcResult.getMap());
+    }
+
+    /**
+     * 会员 -微信端注册会员
+     *
+     * @param request
+     * @return
+     */
+
+    @RequestMapping("/insertmember")
+    @ResponseBody
+    public ZLResult insertmember(HttpServletRequest request) {
+        Map<String, Object> params = getXcxParams();
+        ZLRpcResult zlRpcResult;
+        try {
+            zlRpcResult = memberService.insertmember(params);
+        } catch (ServiceException sx) {
+            throw sx;
+        } catch (Exception ex) {
+            throw new ServiceException(ServiceException.SYS_ERROR);
+        }
+        if (!zlRpcResult.success()) {
+            return ZLResult.Error(zlRpcResult.getErrorMsg());
+        }
+
+        //更新redis中的用户信息
+        updaterMemberInfoInRedis(params);
+
+        return ZLResult.Success();
+    }
+
+    /**
+     * 查询会员信息
+     *
+     * @param request
+     * @param response
+     * @return
+     */
+
+    @RequestMapping("/querymember")
+    @ResponseBody
+    public ZLResult querymember(HttpServletRequest request, HttpServletResponse response) {
+        Map<String, Object> params = getXcxParams();
+        params.put("telephone", MapUtils.getString(params, "mobile"));
+        ZLRpcResult rpcResult = null;
+        try {
+            rpcResult = apiMemberService.queryMemberInfo(params);
+        } catch (Exception ex) {
+            throw new ServiceException(ServiceException.SYS_ERROR);
+        }
+        //判断返回结果
+        if (!rpcResult.success()) {
+            throw new ServiceException(rpcResult.getErrorMsg());
+        }
+        Map<String, Object> memberInfo = rpcResult.getMap();
+        if (MapUtils.isNotEmpty(memberInfo)) {
+            memberInfo.put("shopname", MapUtils.getString(params, "shopname"));
+        }
+        return ZLResult.Success(memberInfo);
+    }
+
+    //查询会员卡充值记录，会员卡充值写在CsOrderController /rechargesuccess
+    @RequestMapping("/showrecharge")
+    @ResponseBody
+    public ZLResult showrecharge(HttpServletRequest request, HttpServletResponse response) {
+        Map<String, Object> params = getXcxParams();
+        ZLRpcResult zlRpcResult;
+        try {
+            zlRpcResult = memberService.showrecharge(params);
+        } catch (ServiceException sx) {
+            throw sx;
+        } catch (Exception ex) {
+            throw new ServiceException(ServiceException.SYS_ERROR);
+        }
+        if (!zlRpcResult.success()) {
+            return ZLResult.Error(zlRpcResult.getErrorMsg());
+        }
+        return ZLResult.Success(zlRpcResult.getData());
+    }
+
+    //消费记录的查询
+    @RequestMapping("/consumerecord")
+    @ResponseBody
+    public ZLResult consumerecord(HttpServletRequest request, HttpServletResponse response) {
+        Map<String, Object> params = getXcxParams();
+        ZLRpcResult zlRpcResult;
+        try {
+            zlRpcResult = memberService.consumerecord(params);
+        } catch (ServiceException sx) {
+            throw sx;
+        } catch (Exception ex) {
+            throw new ServiceException(ServiceException.SYS_ERROR);
+        }
+        if (!zlRpcResult.success()) {
+            return ZLResult.Error(zlRpcResult.getErrorMsg());
+        }
+        return ZLResult.Success(zlRpcResult.getData());
+    }
+
+    //账户设置
+    @RequestMapping("/accountsettings")
+    @ResponseBody
+    public ZLResult accountsettings(HttpServletRequest request, HttpServletResponse response) {
+        Map<String, Object> params = getXcxParams();
+        ZLRpcResult zlRpcResult;
+        try {
+            zlRpcResult = memberService.accountsettings(params);
+        } catch (ServiceException sx) {
+            throw sx;
+        } catch (Exception ex) {
+            throw new ServiceException(ServiceException.SYS_ERROR);
+        }
+        if (!zlRpcResult.success()) {
+            return ZLResult.Error(zlRpcResult.getErrorMsg());
+        }
+        return ZLResult.Success(zlRpcResult.getData());
+    }
+
+    //账户设置页面
+    @RequestMapping("/settingPage")
+    @ResponseBody
+    public ZLResult settingPage(HttpServletRequest request) {
+        Map<String, Object> params = getXcxParams();
+        ZLRpcResult zlRpcResult;
+        try {
+            zlRpcResult = memberService.settingPage(params);
+        } catch (ServiceException sx) {
+            throw sx;
+        } catch (Exception ex) {
+            throw new ServiceException(ServiceException.SYS_ERROR);
+        }
+        if (!zlRpcResult.success()) {
+            return ZLResult.Error(zlRpcResult.getErrorMsg());
+        }
+        return ZLResult.Success(zlRpcResult.getData());
+    }
+
+    //会员账号设置
+    @RequestMapping("/memberSetting")
+    @ResponseBody
+    public ZLResult memberSetting(HttpServletRequest request) {
+        Map<String, Object> params = getXcxParams();
+        ZLRpcResult zlRpcResult;
+        try {
+            zlRpcResult = memberService.memberSetting(params);
+        } catch (ServiceException sx) {
+            throw sx;
+        } catch (Exception ex) {
+            throw new ServiceException(ServiceException.SYS_ERROR);
+        }
+        if (!zlRpcResult.success()) {
+            return ZLResult.Error(zlRpcResult.getErrorMsg());
+        }
+        return ZLResult.Success(zlRpcResult.getData());
+    }
+
+    //会员积分规则
+    @RequestMapping("/memberCreditSetting")
+    @ResponseBody
+    public ZLResult memberCreditSetting(HttpServletRequest request, HttpServletResponse response) {
+        Map<String, Object> params = getXcxParams();
+        ZLRpcResult rpcResult = null;
+        try {
+            rpcResult = apiMemberConfigService.queryMemberShopconfig(params);
+        } catch (Exception ex) {
+            throw new ServiceException(ServiceException.SYS_ERROR);
+        }
+
+        //判断返回结果
+        if (!rpcResult.success()) {
+            throw new ServiceException(rpcResult.getErrorMsg());
+        }
+
+        return ZLResult.Success(rpcResult.getData());
+    }
+
+    //会员积分查询
+    @RequestMapping("/queryMemberCredit")
+    @ResponseBody
+    public Object queryMemberCredit(HttpServletRequest request) {
+        Map<String, Object> params = getXcxParams();
+//        params.put("credittype", "5");
+        ZLRpcResult zlRpcResult = null;
+        ZLRpcResult zlRpcResult1 = null;
+        double currentCredit = 0;
+        String starttime = MapUtils.getString(params, "starttime");
+        if (StringUtils.isNotEmpty(starttime)) {
+            starttime = starttime.replace("/", "-");
+            params.put("starttime", starttime);
+        }
+        Map<String, Object> memberCreditInfo = new HashMap<String, Object>();
+        try {
+            //会员积分消费明细查询
+            //查询会员当前积分
+            zlRpcResult1 = apiMemberService.queryMemberInfoSimple(params);
+            currentCredit = MapUtils.getDoubleValue(zlRpcResult1.getMap(), "credit");
+            String membermodel = MapUtils.getString(zlRpcResult1.getMap(), "membermodel");
+            memberCreditInfo.put("currentCredit", currentCredit);
+            memberCreditInfo.put("membermodel", membermodel);
+            zlRpcResult = apiMemberLogsService.queryMemberCreditList(params);
+        } catch (Exception ex) {
+            //系统级别异常
+            throw new ServiceException(ServiceException.SYS_ERROR);
+        }
+        //判断返回结果
+        if (!zlRpcResult.success()) {
+            throw new ServiceException(zlRpcResult.getErrorMsg());
+        }
+
+        List<Map<String,Object>> creditList = zlRpcResult.getList();
+        memberCreditInfo.put("creditList", creditList);
+        return memberCreditInfo;
+    }
+
+    //查询礼品
+    @RequestMapping("/queryMemberGift")
+    @ResponseBody
+    public ZLResult queryMemberGift(HttpServletRequest request) {
+        Map<String, Object> params = getXcxParams();
+
+        ZLRpcResult zlRpcResult = null;
+        try {
+            zlRpcResult = apiMemberGiftService.queryMemberGift(params);
+        } catch (Exception ex) {
+            //系统级别异常
+            throw new ServiceException(ServiceException.SYS_ERROR);
+        }
+        //判断返回结果
+        if (!zlRpcResult.success()) {
+            throw new ServiceException(zlRpcResult.getErrorMsg());
+        }
+        Page<Map<String, Object>> pageInfo = (Page<Map<String, Object>>) zlRpcResult.getData();
+        if (pageInfo != null && CollectionUtils.isNotEmpty(pageInfo.getList())) {
+            //礼品清单
+            List<Map<String, Object>> dataList = pageInfo.getList();
+            for (Map<String, Object> data : dataList) {
+                String starttime = MapUtils.getString(data, "starttime");
+                String endtime = MapUtils.getString(data, "endtime");
+
+                int status = checkDataTime(starttime);
+                if (status == 0) {
+                    //正 常
+                    data.put("status", "3");
+                } else if (status == 1) {
+                    //还 未 开 始
+                    data.put("status", "1");
+                } else if (status == -1) {
+                    if (checkDataTime(endtime) == -1) {
+                        //已 经 截 止
+                        data.put("status", "2");
+                    } else {
+                        //正 常
+                        data.put("status", "3");
+                    }
+                }
+            }
+        }
+        return ZLResult.Success(pageInfo);
+    }
+
+    public int checkDataTime(String starttime) {
+
+        Date date = new Date();
+
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+
+        String newdatetime = dateFormat.format(date);
+
+        DateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+
+        Date startdate = null;
+
+        Date newdate = null;
+
+
+        try {
+            startdate = format.parse(starttime);
+
+            newdate = format.parse(newdatetime);
+
+        } catch (ParseException e) {
+
+            e.printStackTrace();
+
+        }
+
+        return startdate.compareTo(newdate);
+
+    }
+
+    //会员保存兑换
+    @RequestMapping("/exchangeGift")
+    @ResponseBody
+    public ZLResult exchangeGift(HttpServletRequest request) {
+        Map<String, Object> params = getXcxParams();
+        ZLRpcResult zlRpcResult = null;
+        //积分兑换
+        try {
+            zlRpcResult = apiMemberGiftService.saveMemberExchangeGift(params);
+        } catch (Exception ex) {
+            //系统级别异常
+            throw new ServiceException(ServiceException.SYS_ERROR);
+        }
+        //判断返回结果
+        if (!zlRpcResult.success()) {
+            throw new ServiceException(zlRpcResult.getErrorMsg());
+        }
+        return ZLResult.Success();
+    }
+
+    /**
+     * 会员 - 查询次卡
+     *
+     * @param request
+     * @return
+     */
+
+    @RequestMapping("/queryCountCard")
+    @ResponseBody
+    public ZLResult queryCountCard(HttpServletRequest request) {
+        Map<String, Object> params = getXcxParams();
+
+        ZLRpcResult rpcResult = new ZLRpcResult();
+        try {
+            rpcResult = apiMemberService.queryCountCard(params);
+        } catch (ServiceException ex) {
+            throw new ServiceException(ServiceException.SYS_ERROR);
+        }
+
+        if (!rpcResult.success()) {
+            return ZLResult.Error(ServiceException.getMsg(rpcResult.getErrorCode()));
+        } else {
+            return ZLResult.Success(rpcResult.getData());
+        }
+    }
+
+    /**
+     * 会员 - 查询已购买次卡
+     *
+     * @param request
+     * @return
+     */
+
+    @RequestMapping("/queryBuyedCountCard")
+    @ResponseBody
+    public ZLResult queryBuyedCountCard(HttpServletRequest request) {
+        Map<String, Object> params = getXcxParams();
+        params.put("telephone", MapUtils.getString(params, "mobile"));
+        ZLRpcResult rpcResult = new ZLRpcResult();
+        try {
+            rpcResult = apiMemberService.queryMemberInfo(params);
+        } catch (ServiceException ex) {
+            throw new ServiceException(ServiceException.SYS_ERROR);
+        }
+        if (!rpcResult.success()) {
+            return ZLResult.Error(ServiceException.getMsg(rpcResult.getErrorCode()));
+        } else {
+            Map<String, Object> memberinfo = rpcResult.getMap();
+            List<Map<String, Object>> countCards = (List<Map<String, Object>>) MapUtils.getObject(memberinfo, "countCards");
+            return ZLResult.Success(countCards);
+        }
+    }
+
+    /**
+     * 会员 - 查询次卡消费记录
+     *
+     * @param request
+     * @return
+     */
+
+    @RequestMapping("/queryCountCardLogs")
+    @ResponseBody
+    public ZLResult queryCountCardLogs(HttpServletRequest request) {
+        Map<String, Object> params = getXcxParams();
+        String shopcode = MapUtils.getString(params, "shopcode");
+        String mobile = MapUtils.getString(params, "mobile");
+        params.put("membertelephone", mobile);
+        //只查询消费记录
+        params.put("businesstype", "1");
+        if (StringUtils.isEmpty(shopcode)) {
+            throw new ServiceException(ServiceException.PARAM_MISSING);
+        }
+        if (StringUtils.isEmpty(mobile)) {
+            throw new ServiceException(ServiceException.PARAM_MISSING);
+        }
+        ZLRpcResult rpcResult = new ZLRpcResult();
+        try {
+            rpcResult = apiMemberLogsService.queryMemberCountCardLogs(params);
+        } catch (ServiceException ex) {
+            throw new ServiceException(ServiceException.SYS_ERROR);
+        }
+        if (!rpcResult.success()) {
+            return ZLResult.Error(ServiceException.getMsg(rpcResult.getErrorCode()));
+        } else {
+            return ZLResult.Success(rpcResult.getData());
+        }
+    }
+
+    /**
+     * 会员 - 查询可用次卡
+     *
+     * @param request
+     * @return
+     */
+
+    @RequestMapping("/queryAvailableCountCard")
+    @ResponseBody
+    public ZLResult queryAvailableCountCard(HttpServletRequest request) {
+
+        Map<String, Object> params = getXcxParams();
+
+        ZLRpcResult rpcResult = new ZLRpcResult();
+        try {
+            rpcResult = apiMemberService.queryMemberInfo(params);
+        } catch (ServiceException ex) {
+            throw new ServiceException(ServiceException.SYS_ERROR);
+        }
+        if (!rpcResult.success()) {
+            return ZLResult.Error(ServiceException.getMsg(rpcResult.getErrorCode()));
+        }
+
+        Map<String, Object> memberinfo = rpcResult.getMap();
+        List<Map<String, Object>> countCards = (List<Map<String, Object>>) MapUtils.getObject(memberinfo, "countCards");
+        List<Map<String, Object>> newcountCard = new ArrayList<>();
+        if (CollectionUtils.isEmpty(countCards)) {
+            return ZLResult.Success(countCards);
+        }
+
+        String commoditys = MapUtils.getString(params, "commoditys");
+        for (Map<String, Object> countCard : countCards) {
+            String cardcommoditycode = MapUtils.getString(countCard, "commoditycode");
+            if (compareCommoditycode(cardcommoditycode, commoditys)) {
+                newcountCard.add(countCard);
+            }
+        }
+
+        return ZLResult.Success(newcountCard);
+
+    }
+
+    private boolean compareCommoditycode(String cardcommoditycode, String commoditys) {
+        JSONArray commoditylistjson = JSONArray.fromObject(commoditys);
+        for (int index = 0; index < commoditylistjson.size(); index++) {
+            Map<String, Object> item = new HashMap<String, Object>();
+            Map<String, Object> commodityMap = commoditylistjson.getJSONObject(index);
+            String commoditycode = MapUtils.getString(commodityMap, "commoditycode");
+            if (cardcommoditycode.equals(commoditycode)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * 更新redis中的用户信息
+     */
+    public void updaterMemberInfoInRedis(Map<String,Object> params){
+        String xcxopenid = MapUtils.getString(params, "xcxopenid");
+
+        //存储在缓存服务器上的key
+        String userKey = HttpRequestConstant.MB_XCX_USR_PREFIX + xcxopenid;
+        Map<String, Object> memberInfo = new HashMap<String, Object>();
+
+        //通过统一数据服务器获取用户数据
+        ZLRpcResult rpcResult = apitWxShopMemberService.getLoginMemberInfo(params);
+        memberInfo = rpcResult.getMap();
+
+        //如果统一数据服务器不存在该数据
+        if (MapUtils.isEmpty(memberInfo)) {
+
+        }
+        //更新用户数据到redis中
+        RedisFactory.getPassportClient().setMapToJedis(memberInfo, userKey);
+    }
+
+}

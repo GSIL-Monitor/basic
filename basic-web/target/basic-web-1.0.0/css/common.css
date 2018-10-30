@@ -1,0 +1,25 @@
+.toast {
+    padding: 25px 15px;
+    border: 1px solid #eed3d7;
+    border-radius: 4px;
+    position: fixed;
+    height: 20px;
+    z-index: 99999999;
+    line-height: 25px;
+}
+.toast-Error {
+    color: white;
+    background-color: #DA4453;
+}
+.toast-Success {
+    color: white;
+    background-color: #37BC9B;
+}
+.toast-Info {
+    color: white;
+    background-color: #39393a;
+}
+.toast-Waring {
+    color: white;
+    background-color: #F6BB42;
+}

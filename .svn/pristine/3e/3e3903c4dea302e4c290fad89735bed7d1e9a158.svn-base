@@ -1,0 +1,479 @@
+package com.wgb.service.impl.impl;
+
+import com.wgb.cache.RedisFactory;
+import com.wgb.dubbo.ZLRpcResult;
+import com.wgb.exception.ServiceException;
+import com.wgb.service.LoginInfoService;
+import com.wgb.service.ShopService;
+import com.wgb.service.dubbo.basic.web.PortalBasicService;
+import com.wgb.service.dubbo.mbms.web.ApitMemberAssistantService;
+import com.wgb.service.dubbo.wxms.admin.ApiBranchByWxmsService;
+import com.wgb.service.dubbo.wxms.web.ApitWxShopMemberService;
+import com.wgb.util.CacheConstant;
+import com.wgb.util.CommonUtil;
+import com.wgb.util.HttpRequestConstant;
+import com.wgb.util.HttpRequestUtil;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Created by wgb on 2018/3/17 0017.
+ */
+@Service
+public class LoginInfoServiceImpl implements LoginInfoService {
+
+    @Autowired
+    private PortalBasicService portalBasicService;
+
+    @Autowired
+    private ShopService shopService;
+
+    @Autowired
+    private ApitWxShopMemberService apitWxShopMemberService;
+
+    @Autowired
+    private ApiBranchByWxmsService apiBranchByWxmsService;
+
+    @Autowired
+    private ApitMemberAssistantService apitMemberAssistantService;
+
+    protected final Logger logger = LoggerFactory.getLogger(getClass());
+
+    @Override
+    public String getAccountByToken(String token, int timeout) {
+
+        //存储在缓存服务器上的key
+        String accountKey = token;
+        String account = null;
+
+        //从统一redis服务器获取用户数据
+        account = RedisFactory.getPassportClient().get(accountKey, timeout);
+
+        //如果account不存在
+        if (StringUtils.isEmpty(account)) {
+
+            //通过统一数据服务器获取用户数据
+            ZLRpcResult rpcResult = portalBasicService.getAccountByToken(token);
+            account = (String) rpcResult.getData();
+
+            //如果统一数据服务器不存在该数据
+            if (StringUtils.isEmpty(account)) {
+                return null;
+            }
+
+            //更新用户数据到redis中
+            RedisFactory.getPassportClient().set(accountKey, account);
+        }
+
+        return account;
+    }
+
+    @Override
+    public Map<String, Object> getRemoteUserInfo(String account) {
+        //存储在缓存服务器上的key
+        String userKey = "portal_user_" + account;
+        Map<String, Object> userInfo = null;
+
+        //从统一redis服务器获取用户数据
+        userInfo = RedisFactory.getPassportClient().getMapFromJedis(userKey);
+
+        //如果用户不存在
+        if (MapUtils.isEmpty(userInfo)) {
+
+            //通过统一数据服务器获取用户数据
+            ZLRpcResult rpcResult = portalBasicService.getUserInfo(account);
+            userInfo = rpcResult.getMap();
+
+            //如果统一数据服务器不存在该数据
+            if (MapUtils.isEmpty(userInfo)) {
+                return null;
+            }
+
+            //更新用户数据到redis中
+            RedisFactory.getPassportClient().setMapToJedis(userInfo, userKey);
+        }
+
+        Map<String, Object> branch = getRemoteBranchInfo(userInfo);
+        userInfo.put("branchname", MapUtils.getString(branch, "branchname", ""));
+
+        return userInfo;
+    }
+
+    @Override
+    public Map<String, Object> getRemoteBranchInfo(Map<String, Object> user) {
+        String shopcode = MapUtils.getString(user, "shopcode");
+        String branchcode = MapUtils.getString(user, "branchcode");
+
+        //存储在缓存服务器上的key
+        String cacheKey = "Branch_" + shopcode + "_" + branchcode;
+        Map<String, Object> branchInfo = null;
+
+        //从统一redis服务器获取用户数据
+        branchInfo = RedisFactory.getPassportClient().getMapFromJedis(cacheKey);
+
+        //如果用户不存在
+        if (MapUtils.isEmpty(branchInfo)) {
+
+            Map<String, Object> p1 = new HashMap<String, Object>();
+            p1.put("shopcode", shopcode);
+            p1.put("branchcode", branchcode);
+
+            //通过统一数据服务器获取用户数据
+            ZLRpcResult rpcResult = portalBasicService.getBranchInfo(p1);
+
+            if (!rpcResult.success()) {
+                throw new ServiceException(rpcResult.getErrorCode());
+            }
+
+            branchInfo = rpcResult.getMap();
+
+            //如果统一数据服务器不存在该数据
+            if (MapUtils.isEmpty(branchInfo)) {
+                return null;
+            }
+
+            //更新用户数据到redis中
+            RedisFactory.getPassportClient().setMapToJedis(branchInfo, cacheKey);
+        }
+
+        return branchInfo;
+    }
+
+    @Override
+    public Map<String, Object> getRemoteShopInfo(Map<String, Object> user) {
+        String shopcode = MapUtils.getString(user, "shopcode");
+
+        //存储在缓存服务器上的key
+        String cacheKey = "Shop_" + shopcode;
+        Map<String, Object> shopInfo = null;
+
+        //从统一redis服务器获取用户数据
+        shopInfo = RedisFactory.getPassportClient().getMapFromJedis(cacheKey);
+
+        //如果用户不存在
+        if (MapUtils.isEmpty(shopInfo)) {
+
+            Map<String, Object> p1 = new HashMap<String, Object>();
+            p1.put("shopcode", shopcode);
+
+            //通过统一数据服务器获取商户信息
+            shopInfo = shopService.getShopInfo(p1);
+
+            //如果统一数据服务器不存在该数据
+            if (MapUtils.isEmpty(shopInfo)) {
+                return null;
+            }
+
+            //更新用户数据到redis中
+            RedisFactory.getPassportClient().setMapToJedis(shopInfo, cacheKey);
+        }
+
+        return shopInfo;
+    }
+
+    @Override
+    public List<Map<String, Object>> getRemoteMenuList(Map<String, Object> user) {
+
+        String shopcode = MapUtils.getString(user, "shopcode");
+        String roleids = MapUtils.getString(user, "roleids", "");
+
+        if (StringUtils.isEmpty(shopcode) || StringUtils.isEmpty(roleids)) {
+            return null;
+        }
+
+        String roleKey = CacheConstant.CACHE_SHOP_ROLE_LIST + "_" + shopcode;
+        List<Map<String, Object>> roleList = RedisFactory.getPassportClient().getListFromJedis(roleKey);
+
+        if (CollectionUtils.isEmpty(roleList)) {
+            Map<String, Object> p1 = new HashMap<String, Object>();
+            p1.put("shopcode", shopcode);
+            ZLRpcResult rpcResult = portalBasicService.getShopRoleList(p1);
+            if (!rpcResult.success()) {
+                throw new ServiceException(ServiceException.SYS_ERROR);
+            }
+            roleList = rpcResult.getList();
+
+            if (CollectionUtils.isNotEmpty(roleList)) {
+                RedisFactory.getPassportClient().setListToJedis(roleList, roleKey);
+            }
+        }
+
+        if (CollectionUtils.isNotEmpty(roleList)) {
+            List<String> menuIdList = new ArrayList<String>();
+            List<String> roleidlist = CommonUtil.getListStringFromSplit(roleids);
+            for (Map<String, Object> role : roleList) {
+                String roleid = MapUtils.getString(role, "id");
+                if (!roleidlist.contains(roleid)) {
+                    continue;
+                }
+                String menus = MapUtils.getString(role, "menus");
+                if (StringUtils.isNotEmpty(menus)) {
+                    String[] menuArr = menus.split(",");
+                    for (String menuId : menuArr) {
+                        if (!menuIdList.contains(menuId)) {
+                            menuIdList.add(menuId);
+                        }
+                    }
+                }
+            }
+            if (CollectionUtils.isNotEmpty(menuIdList)) {
+                List<Map<String, Object>> menuList = getAllMenuList();
+                if (CollectionUtils.isNotEmpty(menuList)) {
+                    for (Map<String, Object> menuItem : menuList) {
+                        String menuId = MapUtils.getString(menuItem, "id");
+                        if (menuIdList.contains(menuId)) {
+                            menuItem.put("owned", "1");
+                        } else {
+                            menuItem.put("owned", "0");
+                        }
+                    }
+                    return menuList;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    @Override
+    public List<Map<String, Object>> getAllMenuList() {
+        List<Map<String, Object>> menuList = RedisFactory.getPassportClient().getListFromJedis(CacheConstant.CACHE_PORTAL_MENU_LIST);
+        if (CollectionUtils.isEmpty(menuList)) {
+            ZLRpcResult rpcResult = portalBasicService.getAllMenuList(null);
+            menuList = rpcResult.getList();
+        }
+        return menuList;
+    }
+
+    @Override
+    public Map<String, Object> getLoginMemberForWeiXin(String openid, String shopcode, HttpServletRequest request) {
+
+        Map<String, Object> memberInfo = getMemberInfo(openid, shopcode);
+        //cookie
+        Map<String, Object> cookieMap = HttpRequestUtil.getRequestCookies(request);
+        String branchcode = MapUtils.getString(cookieMap, HttpRequestConstant.MB_WX_BRANCHCODE_PREFIX + shopcode);
+        logger.info("存在cooie中的branchcode:" + branchcode);
+        if (StringUtils.isNotEmpty(branchcode)) {
+            Map<String, Object> branchInfo = getWxBranchInfo(shopcode, branchcode);
+            memberInfo.put("membermodel", MapUtils.getString(branchInfo, "membermodel", ""));
+            memberInfo.put("branchcode", MapUtils.getString(branchInfo, "branchcode", ""));
+            memberInfo.put("branchname", MapUtils.getString(branchInfo, "branchname", ""));
+            logger.info("当cooiek中查询到branchcode后，插入门店的相关信息后的memberinfo：" + memberInfo);
+        }
+        return memberInfo;
+    }
+
+    @Override
+    public Map<String, Object> getMemberInfo(String openid, String shopcode) {
+        //存储在缓存服务器上的key
+        String userKey = HttpRequestConstant.MB_WX_USR_PREFIX + openid;
+        Map<String, Object> memberInfo = null;
+        //从统一redis服务器获取用户数据
+        RedisFactory.getPassportClient().del(userKey);
+        memberInfo = RedisFactory.getPassportClient().getMapFromJedis(userKey);
+        logger.info("从缓存中获取的用户信息：" + memberInfo);
+        //如果用户不存在
+        if (MapUtils.isEmpty(memberInfo)) {
+
+            Map<String, Object> params = new HashMap<String, Object>();
+            params.put("shopcode", shopcode);
+            params.put("openid", openid);
+
+            //通过统一数据服务器获取用户数据
+            ZLRpcResult rpcResult = apitWxShopMemberService.getLoginMemberInfo(params);
+
+            memberInfo = rpcResult.getMap();
+            logger.info("走rpc通过shopcode和membercode从shopmember表里查的用户：" + memberInfo);
+            //如果统一数据服务器不存在该数据
+            if (MapUtils.isEmpty(memberInfo)) {
+                return null;
+            }
+
+            //更新用户数据到redis中
+            RedisFactory.getPassportClient().setMapToJedis(memberInfo, userKey);
+        }
+        memberInfo.put("openid", openid);
+        apitWxShopMemberService.saveLoginLogs(memberInfo);
+        return memberInfo;
+    }
+
+    @Override
+    public void updateMemberInfoInRedis(String shopcode, String openid) {
+        String userKey = HttpRequestConstant.MB_WX_USR_PREFIX + openid;
+        Map<String, Object> memberInfo = null;
+
+        //从统一redis服务器获取用户数据
+        memberInfo = RedisFactory.getPassportClient().getMapFromJedis(userKey);
+        logger.info("绑定手机号码后更新redis缓存中用户信息，先从redis中获取的：" + memberInfo);
+        //如果用户不存在
+        if (MapUtils.isNotEmpty(memberInfo)) {
+
+            Map<String, Object> params = new HashMap<String, Object>();
+            params.put("shopcode", shopcode);
+            params.put("openid", openid);
+            //通过统一数据服务器获取用户数据
+            ZLRpcResult rpcResult = apitWxShopMemberService.getLoginMemberInfo(params);
+            memberInfo = rpcResult.getMap();
+            logger.info("即将更新到缓存中的最新用户信息，从数据库中查到的：" + memberInfo);
+            //更新用户数据到redis中
+            RedisFactory.getPassportClient().setMapToJedis(memberInfo, userKey);
+        }
+    }
+
+    @Override
+    public Map<String, Object> getWxBranchInfo(String shopcode, String branchcode) {
+        List<Map<String, Object>> branchList = getWxBranchList(shopcode);
+
+        if (CollectionUtils.isNotEmpty(branchList)) {
+            for (Map<String, Object> branch : branchList) {
+                String itembranchcode = MapUtils.getString(branch, "branchcode", "");
+                if (itembranchcode.equals(branchcode)) {
+                    return branch;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * 小程序
+     */
+    @Override
+    public Map<String, Object> getMemberInfo(Map<String, Object> params) {
+
+        String shopcode = MapUtils.getString(params, "shopcode");
+        String xcxopenid = MapUtils.getString(params, "xcxopenid");
+
+        //存储在缓存服务器上的key
+        String userKey = HttpRequestConstant.MB_XCX_USR_PREFIX + xcxopenid;
+        Map<String, Object> memberInfo = null;
+
+        //从统一redis服务器获取用户数据
+        memberInfo = RedisFactory.getPassportClient().getMapFromJedis(userKey);
+
+        //如果用户不存在
+        if (MapUtils.isEmpty(memberInfo)) {
+
+            Map<String, Object> p1 = new HashMap<String, Object>();
+            p1.put("shopcode", shopcode);
+            p1.put("xcxopenid", xcxopenid);
+
+            //通过统一数据服务器获取用户数据
+            ZLRpcResult rpcResult = apitWxShopMemberService.getLoginMemberInfo(p1);
+            memberInfo = rpcResult.getMap();
+
+            //如果统一数据服务器不存在该数据
+            if (MapUtils.isEmpty(memberInfo)) {
+                return null;
+            }
+
+            //更新用户数据到redis中
+            RedisFactory.getPassportClient().setMapToJedis(memberInfo, userKey);
+        }
+        return memberInfo;
+    }
+
+    @Override
+    public Map<String, Object> getLoginMemberForXCX(Map<String, Object> params) {
+        String shopcode = MapUtils.getString(params, "shopcode");
+        String branchcode = MapUtils.getString(params, "branchcode");
+        String xcxopenid = MapUtils.getString(params, "xcxopenid");
+
+        Map<String, Object> memberInfo = new HashMap<String, Object>();
+        if (StringUtils.isNotEmpty(xcxopenid)) {
+            memberInfo = getMemberInfo(params);
+        }
+
+
+        Map<String, Object> branchInfo = getWxBranchInfo(shopcode, branchcode);
+
+        memberInfo.put("branchcode", MapUtils.getString(branchInfo, "branchcode"));
+        memberInfo.put("branchname", MapUtils.getString(branchInfo, "branchname"));
+        memberInfo.put("dadacode", MapUtils.getString(branchInfo, "dadacode"));
+        memberInfo.put("membermodel", MapUtils.getString(branchInfo, "membermodel"));
+        return memberInfo;
+    }
+
+    @Override
+    public Map<String, Object> getRemoteAssistanrInfo(String token, String account) {
+        //存储在缓存服务器上的key
+        String userKey = "AS_" + token;
+        Map<String, Object> userInfo = null;
+
+        //从统一redis服务器获取用户数据
+        userInfo = RedisFactory.getDefaultClient().getMapFromJedis(userKey);
+
+        //如果用户不存在
+        if (MapUtils.isEmpty(userInfo)) {
+
+            Map<String, Object> params = new HashMap<String, Object>();
+            params.put("token", token);
+            params.put("account", account);
+
+            //通过用户接口查询登录用户信息
+            ZLRpcResult rpcResult = apitMemberAssistantService.searchAssistantInfo(params);
+            if (!rpcResult.success()) {
+                throw new ServiceException(rpcResult.getErrorCode());
+            }
+
+            userInfo = rpcResult.getMap();
+
+            //如果统一数据服务器不存在该数据
+            if (MapUtils.isEmpty(userInfo)) {
+                return null;
+            }
+
+            //更新用户数据到redis中
+            RedisFactory.getDefaultClient().setMapToJedis(userInfo, userKey);
+        }
+        return userInfo;
+    }
+
+    @Override
+    public Map<String, Object> getLmsUserInfo(String accessCode) {
+        return RedisFactory.getDefaultClient().getMapFromJedis("LM_" + accessCode);
+    }
+
+    @Override
+    public List<Map<String, Object>> getWxBranchList(String shopcode) {
+        //存储在缓存服务器上的key
+        String key = "WXBranchList_" + shopcode;
+        List<Map<String, Object>> branchList = null;
+
+        //从统一redis服务器获取用户数据
+        branchList = RedisFactory.getDefaultClient().getListFromJedis(key);
+
+        //如果用户不存在
+        if (CollectionUtils.isEmpty(branchList)) {
+
+            Map<String, Object> params = new HashMap<String, Object>();
+            params.put("shopcode", shopcode);
+
+            //通过统一数据服务器获取用户数据
+            ZLRpcResult rpcResult = apiBranchByWxmsService.getBranchList(params);
+            branchList = rpcResult.getList();
+
+            //如果统一数据服务器不存在该数据
+            if (CollectionUtils.isEmpty(branchList)) {
+                return null;
+            }
+
+            //更新用户数据到redis中
+            RedisFactory.getPassportClient().setListToJedis(branchList, key);
+        }
+
+        return branchList;
+    }
+}

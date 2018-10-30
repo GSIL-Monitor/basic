@@ -1,0 +1,291 @@
+package com.wgb.controller.sp.renew;
+
+import com.wgb.bean.ZLResult;
+import com.wgb.controller.sp.SPBaseController;
+import com.wgb.controller.sp.message.MessageController;
+import com.wgb.dao.Page;
+import com.wgb.dubbo.ZLRpcResult;
+import com.wgb.service.dubbo.srvms.web.ApitRenewService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import sun.util.calendar.BaseCalendar;
+
+import javax.servlet.http.HttpServletRequest;
+import java.util.Map;
+
+@Controller
+@RequestMapping("/renew/order")
+public class RenewController extends SPBaseController {
+    private static final Logger LOGGER = LoggerFactory.getLogger(RenewController.class);
+
+    @Autowired
+    private ApitRenewService apitRenewService;
+
+    /**
+     * 查询商户续费订单列表
+     * @param request
+     * @return
+     */
+    @RequestMapping("/queryOrderInfoList.action")
+    @ResponseBody
+    public ZLResult queryMessageDetail(HttpServletRequest request) {
+        ZLResult result = ZLResult.Success();
+        ZLRpcResult zlRpcResult=null;
+        try {
+            Map<String, Object> params = getParams();
+            zlRpcResult= apitRenewService.queryOrderInfoList(params);
+            result = parseRpcResult(zlRpcResult);
+        }catch (Exception ex){
+            LOGGER.error("查询商户续费订单列表异常!",ex);
+            result.setErrorMsg("操作失败，请联系管理员！");
+        }
+        return result;
+    }
+
+    /**
+     * 查询产品名称
+     * @param request
+     * @return
+     */
+    @RequestMapping("/orderManage.action")
+    @ResponseBody
+    public ZLResult orderManage(HttpServletRequest request) {
+        ZLResult result = ZLResult.Success();
+        try {
+            Map<String, Object> params = getParams();
+            ZLRpcResult zlRpcResult= apitRenewService.queryProductInfoByCondition(params);
+            result = parseRpcResult(zlRpcResult);
+        }catch (Exception ex){
+            LOGGER.error("查询产品名称异常!",ex);
+            result.setErrorMsg("操作失败，请联系管理员！");
+        }
+        return result;
+    }
+    /**
+     * 删除订单
+     * @param request
+     * @return
+     */
+    @RequestMapping("/deleteOrderInfo.action")
+    @ResponseBody
+    public ZLResult deleteOrderInfo(HttpServletRequest request) {
+        ZLResult result = ZLResult.Success();
+        try {
+            Map<String, Object> params = getParams();
+            ZLRpcResult zlRpcResult= apitRenewService.deleteOrderInfo(params);
+            result = parseRpcResult(zlRpcResult);
+        }catch (Exception ex){
+            LOGGER.error("删除订单异常!",ex);
+            result.setErrorMsg("操作失败，请联系管理员！");
+        }
+        return result;
+    }
+    /**
+     * 查询续费详情
+     * @param request
+     * @return
+     */
+    @RequestMapping("/merchantStandardDetail.action")
+    @ResponseBody
+    public ZLResult merchantStandardDetail(HttpServletRequest request) {
+        ZLResult result = ZLResult.Success();
+        try {
+            Map<String, Object> params = getParams();
+            ZLRpcResult zlRpcResult= apitRenewService.merchantStandardDetail(params);
+            result = parseRpcResult(zlRpcResult);
+        }catch (Exception ex){
+            LOGGER.error("查询续费详情异常!",ex);
+            result.setErrorMsg("操作失败，请联系管理员！");
+        }
+        return result;
+    }
+    /**
+     * 可以续费产品页面
+     * @param request
+     * @return
+     */
+    @RequestMapping("/queryProductList.action")
+    @ResponseBody
+    public ZLResult queryProductList(HttpServletRequest request) {
+        ZLResult result = ZLResult.Success();
+        try {
+            Map<String, Object> params = getParams();
+            ZLRpcResult zlRpcResult= apitRenewService.queryProductList(params);
+            result = parseRpcResult(zlRpcResult);
+        }catch (Exception ex){
+            LOGGER.error("查询可以续费产品页面异常!",ex);
+            result.setErrorMsg("操作失败，请联系管理员！");
+        }
+        return result;
+    }
+    /**
+     * 门店标准版本续费组件选择门店
+     * @param request
+     * @return
+     */
+    @RequestMapping("/findSingleShop.action")
+    @ResponseBody
+    public ZLResult findSingleShop(HttpServletRequest request) {
+        ZLResult result = ZLResult.Success();
+        try {
+            Map<String, Object> params = getParams();
+            ZLRpcResult zlRpcResult= apitRenewService.findSingleShop(params);
+            result = parseRpcResult(zlRpcResult);
+        }catch (Exception ex){
+            LOGGER.error("门店标准版本续费组件选择门店异常!",ex);
+            result.setErrorMsg("操作失败，请联系管理员！");
+        }
+        return result;
+    }
+    /**
+     * 提交订单
+     * @param request
+     * @return
+     */
+    @RequestMapping("/payAgainMerchantStandard.action")
+    @ResponseBody
+    public ZLResult payAgainMerchantStandard(HttpServletRequest request) {
+        ZLResult result = ZLResult.Success();
+        try {
+            Map<String, Object> params = getParams();
+            ZLRpcResult zlRpcResult= apitRenewService.payAgainMerchantStandard(params);
+            result = parseRpcResult(zlRpcResult);
+        }catch (Exception ex){
+            LOGGER.error("提交订单异常!",ex);
+            result.setErrorMsg("操作失败，请联系管理员！");
+        }
+        return result;
+    }
+    /**
+     * 微信小程序选择门店
+     * @param request
+     * @return
+     */
+    @RequestMapping("/findMultipleShop.action")
+    @ResponseBody
+    public ZLResult findMultipleShop(HttpServletRequest request) {
+        ZLResult result = ZLResult.Success();
+        try {
+            Map<String, Object> params = getParams();
+            ZLRpcResult zlRpcResult= apitRenewService.findMultipleShop(params);
+            result = parseRpcResult(zlRpcResult);
+        }catch (Exception ex){
+            LOGGER.error("微信小程序选择门店异常!",ex);
+            result.setErrorMsg("操作失败，请联系管理员！");
+        }
+        return result;
+    }
+    /**
+     * 购买新的营销助手码的门店
+     * @param request
+     * @return
+     */
+    @RequestMapping("/findallbranch.action")
+    @ResponseBody
+    public ZLResult findAllBranch(HttpServletRequest request) {
+        ZLResult result = ZLResult.Success();
+        try {
+            Map<String, Object> params = getParams();
+            ZLRpcResult zlRpcResult= apitRenewService.findallShop(params);
+            result = parseRpcResult(zlRpcResult);
+        }catch (Exception ex){
+            LOGGER.error("购买新的营销助手码的门店异常!",ex);
+            result.setErrorMsg("操作失败，请联系管理员！");
+        }
+        return result;
+    }
+    /**
+     * 添加新的营销助手码
+     * @param request
+     * @return
+     */
+    @RequestMapping("/findassshop.action")
+    @ResponseBody
+    public ZLResult findassshop(HttpServletRequest request) {
+        ZLResult result = ZLResult.Success();
+        try {
+            Map<String, Object> params = getParams();
+            ZLRpcResult zlRpcResult= apitRenewService.findMultipleShop5(params);
+            result = parseRpcResult(zlRpcResult);
+        }catch (Exception ex){
+            LOGGER.error("添加新的营销助手码异常!",ex);
+            result.setErrorMsg("操作失败，请联系管理员！");
+        }
+        return result;
+    }
+    /**
+     * 微信营销插件选择门店
+     * @param request
+     * @return
+     */
+    @RequestMapping("/findwechatallShop.action")
+    @ResponseBody
+    public ZLResult findwechatallShop(HttpServletRequest request) {
+        ZLResult result = ZLResult.Success();
+        try {
+            Map<String, Object> params = getParams();
+            ZLRpcResult zlRpcResult= apitRenewService.findwechatallShop(params);
+            result = parseRpcResult(zlRpcResult);
+        }catch (Exception ex){
+            LOGGER.error("添加新的营销助手码异常!",ex);
+            result.setErrorMsg("操作失败，请联系管理员！");
+        }
+        return result;
+    }
+    /**
+     *获取营销助手码
+     * @param request
+     * @return
+     */
+    @RequestMapping("/querysaleassistantcode.action")
+    @ResponseBody
+    public ZLResult querysaleassistantcode(HttpServletRequest request) {
+        ZLResult result = ZLResult.Success();
+        try {
+            Map<String, Object> params = getParams();
+            ZLRpcResult zlRpcResult= apitRenewService.querysaleassistantcode(params);
+            result = parseRpcResult(zlRpcResult);
+        }catch (Exception ex){
+            LOGGER.error("添加新的营销助手码异常!",ex);
+            result.setErrorMsg("操作失败，请联系管理员！");
+        }
+        return result;
+    }
+    /**
+     * 连锁续费选择门店
+     * @param request
+     * @return
+     */
+    @RequestMapping("/findMultipleShopRenew.action")
+    @ResponseBody
+    public ZLResult findMultipleShopRenew(HttpServletRequest request) {
+        ZLResult result = ZLResult.Success();
+        try {
+            Map<String, Object> params = getParams();
+            ZLRpcResult zlRpcResult= apitRenewService.findMultipleShopRenew(params);
+            result = parseRpcResult(zlRpcResult);
+        }catch (Exception ex){
+            LOGGER.error("连锁续费选择门店异常!",ex);
+            result.setErrorMsg("操作失败，请联系管理员！");
+        }
+        return result;
+    }
+    public ZLResult parseRpcResult(ZLRpcResult rpcResult){
+        ZLResult result = ZLResult.Success();
+        if (null != rpcResult && rpcResult.success()){ // 成功
+            result.setData(rpcResult.getData());
+            return result;
+        }
+        if(null != rpcResult.getData()){ // 失败，但是有返回信息(用于展示)
+            result.setErrorMsg(rpcResult.getData().toString());
+            return result;
+        }
+        LOGGER.error(this.getClass().getName() + ":调用RPC失败!",rpcResult.getErrorMsg());
+        result.setErrorMsg("操作失败,请联系管理员!");
+        return result;
+    }
+}

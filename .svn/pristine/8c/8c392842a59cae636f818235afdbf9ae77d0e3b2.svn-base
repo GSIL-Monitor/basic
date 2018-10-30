@@ -1,0 +1,329 @@
+package com.wgb.controller.mt.goodshelp;
+
+import com.wgb.bean.ZLResult;
+import com.wgb.cache.RedisFactory;
+import com.wgb.controller.mt.MTBaseController;
+import com.wgb.dubbo.ZLRpcResult;
+import com.wgb.exception.ServiceException;
+import com.wgb.service.dubbo.dcms.web.ApitBossAssistantService;
+import com.wgb.service.dubbo.dcms.web.ApitGoodsHelpService;
+import com.wgb.service.dubbo.pays.admin.ApiPayService;
+import com.wgb.service.dubbo.urms.web.ApitBranchService;
+import com.wgb.service.dubbo.urms.web.ApitPortalUserService;
+import com.wgb.util.Contants;
+import com.wgb.util.HttpClientUtil;
+import com.wgb.util.WeixinCommon;
+import net.sf.json.JSONObject;
+import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import javax.servlet.http.HttpServletRequest;
+import java.util.*;
+
+/**
+ * 商品助手
+ * Created by lzy on 2018/8/6.
+ */
+@Controller
+@RequestMapping("/goods/goodsHelp")
+public class MTGoodsHelpController extends MTBaseController {
+
+    public static final Logger logger = LoggerFactory.getLogger(MTGoodsHelpController.class);
+
+    @Autowired
+    private ApitGoodsHelpService apitGoodsHelpService;
+
+    @Autowired
+    private ApitBranchService apitBranchService;
+
+    @Autowired
+    private ApiPayService apiPayService;
+
+    /**
+     * 商品助手 - 扫码盘点
+     */
+    @RequestMapping("/scanCheckCommodity")
+    @ResponseBody
+    public ZLResult scanCheckCommdity(HttpServletRequest request) {
+        Map<String, Object> params = getParams();
+        //定义返回对象
+        ZLRpcResult zlRpcResult = new ZLRpcResult();
+        try {
+            //查询商品详情
+            zlRpcResult = apitGoodsHelpService.scanCheckCommdity(params);
+
+        } catch (Exception ex) {
+            //系统级别异常
+            throw new ServiceException(ServiceException.SYS_ERROR);
+        }
+        //判断返回结果
+        if (!zlRpcResult.success()) {
+            throw new ServiceException(zlRpcResult.getErrorMsg());
+        }
+        return ZLResult.Success(zlRpcResult.getData());
+    }
+
+    /**
+     * 商品助手 - 搜索盘点
+     */
+    @RequestMapping("/searchCheckCommodity")
+    @ResponseBody
+    public ZLResult searchCheckCommdity(HttpServletRequest request) {
+        Map<String, Object> params = getParams();
+        //定义返回对象
+        ZLRpcResult zlRpcResult = new ZLRpcResult();
+        try {
+            //查询商品详情
+            zlRpcResult = apitGoodsHelpService.searchCheckCommdity(params);
+
+        } catch (Exception ex) {
+            //系统级别异常
+            throw new ServiceException(ServiceException.SYS_ERROR);
+        }
+        //判断返回结果
+        if (!zlRpcResult.success()) {
+            throw new ServiceException(zlRpcResult.getErrorMsg());
+        }
+        return ZLResult.Success(zlRpcResult.getData());
+    }
+
+    @RequestMapping("/queryAllBranchList")
+    @ResponseBody
+    public ZLResult queryAllBranchList(HttpServletRequest request) {
+        Map<String, Object> params = getParams();
+        //定义返回对象
+        ZLRpcResult zlRpcResult = new ZLRpcResult();
+        try {
+            zlRpcResult = apitBranchService.queryBranchcodeForDcmsGoods(params);
+        } catch (Exception ex) {
+            //系统级别异常
+            throw new ServiceException(ServiceException.SYS_ERROR);
+        }
+        return ZLResult.Success(zlRpcResult.getData());
+    }
+
+
+    /**
+     * 获取微信扫一扫参数
+     *
+     * @param request
+     * @return
+     */
+    @RequestMapping("/getWeiXinScanParams")
+    @ResponseBody
+    public ZLResult getWeiXinScanParams(HttpServletRequest request) {
+        Map<String, Object> params = getParams();
+        //params.put("shopcode","125806649");
+        //params.put("requestRefererURL","http://127.0.0.1:8080/mt/goods/goods/goodsHelp/getWeiXinScanParams");
+        //params.put("acess_token","1234567890");
+
+        ZLRpcResult zlRpcResult = new ZLRpcResult();
+        try {
+            zlRpcResult = getWeiXinScanParams(params);
+        } catch (Exception ex) {
+            throw new ServiceException(ServiceException.SYS_ERROR);
+
+        }
+        if (!zlRpcResult.success()) {
+            throw new ServiceException(zlRpcResult.getErrorMsg());
+        }
+        return ZLResult.Success(zlRpcResult.getData());
+    }
+
+
+    /**
+     * 获取调用微信接口的access_token
+     */
+    private String getAcess_token(Map<String, Object> params) {
+        String code = MapUtils.getString(params, "code");
+        String shopcode = MapUtils.getString(params, "shopcode");
+        //ZLRpcResult rpcResult = apiPayService.getPayConfig(params);
+        //Map<String, Object> payConfig = rpcResult.getMap();
+        //MapUtils.getString(payConfig, "wxpubappid");
+        //MapUtils.getString(payConfig, "wxpubappsecret");
+
+        String wxPubAppId = Contants.ZHOLGLUN_NETTEST_WXPUBAPPID;
+        String wxPubAppSecret = Contants.ZHOLGLUN_NETTEST_WXPUBAPPSECRET;
+        logger.info("吴阳==>>718版：wxpubappid+wxpubappsecret:" + wxPubAppId + ":" + wxPubAppSecret);
+        String acess_token = null;
+        acess_token = RedisFactory.getDefaultClient().get("shopcode_" + shopcode + "acess_token");
+        logger.info("五羊REDIS中的acess_token" + acess_token);
+        if (StringUtils.isEmpty(acess_token)) {
+            // 拼接请求地址
+            // https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=wxfa05743eef319afd&secret=APP724c7f5d7691a6cc7372870b08127a39
+            String requestUrl = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=APPID&secret=APPSECRET";
+
+            requestUrl = requestUrl.replace("APPID", wxPubAppId);
+            requestUrl = requestUrl.replace("APPSECRET", wxPubAppSecret);
+            String httpResult = HttpClientUtil.httpGetRequest(requestUrl);
+            logger.info("五羊-get提交后的返回的json" + httpResult);
+            if (StringUtils.isNotEmpty(httpResult)) {
+                JSONObject jsonObject = JSONObject.fromObject(httpResult);
+                logger.info("五羊存在acess_token的jsonObject：" + jsonObject);
+                //获取到的acecss_token和expires_in保存到redis当中
+                acess_token = jsonObject.getString("access_token");
+                logger.info("五羊--REDIS中没有获取到走第三方获取的：access_token:" + acess_token);
+                RedisFactory.getDefaultClient().set("shopcode_" + shopcode + "acess_token", acess_token, 7200);
+            }
+        }
+        return acess_token;
+    }
+
+    /**
+     * 商品助手--获取微信扫一扫参数
+     *
+     * @param
+     * @return
+     */
+    private ZLRpcResult getWeiXinScanParams(Map<String, Object> params) {
+        ZLRpcResult zlRpcResult = new ZLRpcResult();
+        Map<String, Object> shareData = new HashMap<>();
+        String requestRefererURL = MapUtils.getString(params, "requestRefererURL");
+        params.put("shopcode", Contants.ZHOLGLUN_NETTEST_SHOPCODE);
+        try {
+            //获取acess_token
+            String acess_token = getAcess_token(params);
+            String shopcode = MapUtils.getString(params, "shopcode");
+            //ZLRpcResult rpcResult = apiPayService.getPayConfig(params);
+            //Map<String, Object> payConfig = rpcResult.getMap();
+            //MapUtils.getString(payConfig, "wxpubappid");
+            //MapUtils.getString(payConfig, "wxpubappsecret");
+
+            String wxPubAppId = Contants.ZHOLGLUN_NETTEST_WXPUBAPPID;
+            String wxPubAppSecret = Contants.ZHOLGLUN_NETTEST_WXPUBAPPSECRET;
+            String noncestr = UUID.randomUUID().toString();   //生成签名的随机串
+            String timestamp = Long.toString(System.currentTimeMillis() / 1000);//生成签名的时间戳
+            String jsapi_ticket = RedisFactory.getDefaultClient().get("shopcode_" + shopcode + "jsapi_ticket");
+            if (StringUtils.isEmpty(jsapi_ticket)) {
+                jsapi_ticket = WeixinCommon.getJsApiTicket(acess_token);
+                //获取到的jsapi_ticket存放到redis中，有效期两个小时--7200秒
+                RedisFactory.getDefaultClient().set("shopcode_" + shopcode + "jsapi_ticket", jsapi_ticket, 7200);
+            }
+            String str = "jsapi_ticket=" + jsapi_ticket +
+                    "&noncestr=" + noncestr +
+                    "&timestamp=" + timestamp +
+                    "&url=" + requestRefererURL;
+            String signature = WeixinCommon.encode(str);        //签名
+            shareData.put("appid", wxPubAppId);
+            shareData.put("timestamp", timestamp);
+            shareData.put("nonceStr", noncestr);
+            shareData.put("signature", signature);
+            String[] data = {"scanQRCode"};
+            List<String> jsApiList = Arrays.asList(data);
+            shareData.put("jsApiList", jsApiList.toString());
+
+        } catch (ServiceException ex) {
+            logger.error("商品助手--获取微信扫一扫参数异常, 入参:" + params, ex.getMessage());
+            zlRpcResult.setErrorMsg(ex.getMessage());
+            return zlRpcResult;
+        } catch (Exception e) {
+            logger.error("商品助手--获取微信扫一扫参数异常, 入参:" + params, e.getMessage());
+            zlRpcResult.setErrorMsg(e.getMessage());
+            return zlRpcResult;
+        }
+        zlRpcResult.setData(shareData);
+        return zlRpcResult;
+    }
+
+    /**
+     * 商品助手 - 搜索商品
+     */
+    @RequestMapping("/searchCommodityByBarcode")
+    @ResponseBody
+    public ZLResult searchCommodityByBarcode(HttpServletRequest request) {
+        Map<String, Object> params = getParams();
+        //定义返回对象
+        ZLRpcResult zlRpcResult = new ZLRpcResult();
+        try {
+            //查询商品列表
+            zlRpcResult = apitGoodsHelpService.searchCommodityByBarcode(params);
+
+        } catch (Exception ex) {
+            //系统级别异常
+            throw new ServiceException(ServiceException.SYS_ERROR);
+        }
+        //判断返回结果
+        if (!zlRpcResult.success()) {
+            throw new ServiceException(zlRpcResult.getErrorMsg());
+        }
+        return ZLResult.Success(zlRpcResult.getData());
+    }
+    /**
+     * 商品助手 - 根据commoditycode查询商品详情
+     */
+    @RequestMapping("/searchCommodityDetail")
+    @ResponseBody
+    public ZLResult searchCommodityDetail(HttpServletRequest request) {
+        Map<String, Object> params = getParams();
+        //定义返回对象
+        ZLRpcResult zlRpcResult = new ZLRpcResult();
+        try {
+            //查询商品详情
+            zlRpcResult = apitGoodsHelpService.searchCommodityDetail(params);
+
+        } catch (Exception ex) {
+            //系统级别异常
+            throw new ServiceException(ServiceException.SYS_ERROR);
+        }
+        //判断返回结果
+        if (!zlRpcResult.success()) {
+            throw new ServiceException(zlRpcResult.getErrorMsg());
+        }
+        return ZLResult.Success(zlRpcResult.getData());
+    }
+
+    /**
+     * 商品助手 - 扫一扫查询商品
+     */
+    @RequestMapping("/scanCommodityByBarcode")
+    @ResponseBody
+    public ZLResult scanCommodityByBarcode(HttpServletRequest request) {
+        Map<String, Object> params = getParams();
+        //定义返回对象
+        ZLRpcResult zlRpcResult = new ZLRpcResult();
+        try {
+            //查询商品列表
+            zlRpcResult = apitGoodsHelpService.scanCommodityByBarcode(params);
+
+        } catch (Exception ex) {
+            //系统级别异常
+            throw new ServiceException(ServiceException.SYS_ERROR);
+        }
+        //判断返回结果
+        if (!zlRpcResult.success()) {
+            throw new ServiceException(zlRpcResult.getErrorMsg());
+        }
+        return ZLResult.Success(zlRpcResult.getData());
+    }
+
+    /**
+     * 商品助手 - 保存和修改商品
+     */
+    @RequestMapping("/saveOrUpdate")
+    @ResponseBody
+    public ZLResult saveOrUpdate(HttpServletRequest request) {
+        Map<String, Object> params = getParams();
+        //定义返回对象
+        ZLRpcResult zlRpcResult = new ZLRpcResult();
+        try {
+            //查询商品列表
+            zlRpcResult = apitGoodsHelpService.saveOrUpdate(params);
+
+        } catch (Exception ex) {
+            //系统级别异常
+            throw new ServiceException(ServiceException.SYS_ERROR);
+        }
+        //判断返回结果
+        if (!zlRpcResult.success()) {
+            throw new ServiceException(zlRpcResult.getErrorMsg());
+        }
+        return ZLResult.Success(zlRpcResult.getData());
+    }
+
+}

@@ -1,0 +1,216 @@
+package com.wgb.controller.sp.workorder;
+
+import com.wgb.bean.ZLResult;
+import com.wgb.controller.sp.SPBaseController;
+import com.wgb.dao.Page;
+import com.wgb.dubbo.ZLRpcResult;
+import com.wgb.service.dubbo.srvms.web.ApitWorkOrderService;
+import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import javax.servlet.http.HttpServletRequest;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * 工单
+ *
+ * @author fxs
+ * @create 2018-06-28 15:12
+ **/
+@Controller
+@RequestMapping("workorder")
+public class WorkOrderController extends SPBaseController {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(WorkOrderController.class);
+    @Autowired
+    private ApitWorkOrderService apitWorkOrderService;
+
+    @RequestMapping("queryWorkOrderPage")
+    @ResponseBody
+    public ZLResult queryWorkOrderPage(HttpServletRequest request){
+        ZLResult result = ZLResult.Success();
+        Map<String, Object> params = getParams();
+        checkWorkOrderStatus(params);
+        try {
+            ZLRpcResult rpcResult = apitWorkOrderService.queryWorkOrderPage(params);
+            result = parseRpcResult(rpcResult);
+        }catch (Exception ex){
+            LOGGER.error("查询工单列表页系统异常!",ex);
+            result.setErrorMsg("操作失败，请联系管理员！");
+        }
+        return result;
+    }
+
+    private void checkWorkOrderStatus(Map<String ,Object> params){
+        String workorderstatus = MapUtils.getString(params, "workorderstatus");
+        if(StringUtils.isNotBlank(workorderstatus)){
+            String[] split = workorderstatus.split(",");
+            params.put("workorderstatus" , Arrays.asList(split));
+        }else{
+            params.remove("workorderstatus");
+        }
+    }
+
+    @RequestMapping("queryHardwareDeviceCategory")
+    @ResponseBody
+    public ZLResult queryHardwareDeviceCategory(HttpServletRequest request){
+        ZLResult result = ZLResult.Success();
+        Map<String, Object> params = getParams();
+        try {
+            ZLRpcResult rpcResult = apitWorkOrderService.queryHardwareDeviceCategory(params);
+            result = parseRpcResult(rpcResult);
+        }catch (Exception ex){
+            LOGGER.error("查询硬件设备类型系统异常!",ex);
+            result.setErrorMsg("操作失败，请联系管理员！");
+        }
+        return result;
+    }
+
+    @RequestMapping("queryHardwareByProductCategory")
+    @ResponseBody
+    public ZLResult queryHardwareByProductCategory(){
+        ZLResult result = ZLResult.Success();
+        Map<String, Object> params = getParams();
+        try {
+            ZLRpcResult rpcResult = apitWorkOrderService.queryHardwareByProductCategory(params);
+            result = parseRpcResult(rpcResult);
+        }catch (Exception ex){
+            LOGGER.error("查询硬件设备型号系统异常!",ex);
+            result.setErrorMsg("操作失败，请联系管理员！");
+        }
+        return result;
+    }
+
+    @RequestMapping("queryShopByShopCodeAndShopName")
+    @ResponseBody
+    public ZLResult queryShopByShopCodeAndShopName(HttpServletRequest request){
+        ZLResult result = ZLResult.Success();
+        Map<String, Object> params = getParams();
+        try {
+            ZLRpcResult rpcResult = apitWorkOrderService.queryShopByShopCodeAndShopName(params);
+            result = parseRpcResult(rpcResult);
+        }catch (Exception ex){
+            LOGGER.error("查询商户信息系统异常!",ex);
+            result.setErrorMsg("操作失败，请联系管理员！");
+        }
+        return result;
+    }
+
+    @RequestMapping("querBranchByShopCode")
+    @ResponseBody
+    public ZLResult querBranchByShopCode(HttpServletRequest request){
+        ZLResult result = ZLResult.Success();
+        Map<String, Object> params = getParams();
+        try {
+            ZLRpcResult rpcResult = apitWorkOrderService.querBranchByShopCode(params);
+            result = parseRpcResult(rpcResult);
+        }catch (Exception ex){
+            LOGGER.error("查询门店信息系统异常!",ex);
+            result.setErrorMsg("操作失败，请联系管理员！");
+        }
+        return result;
+    }
+
+    @RequestMapping("queryPartsByCategoryAndModel")
+    @ResponseBody
+    public ZLResult queryPartsByCategoryAndModel(){
+        ZLResult result = ZLResult.Success();
+        Map<String, Object> params = getParams();
+        try {
+            ZLRpcResult rpcResult = apitWorkOrderService.queryPartsByCategoryAndModel(params);
+            result = parseRpcResult(rpcResult);
+        }catch (Exception ex){
+            LOGGER.error("查询硬件产品配件信息系统异常!",ex);
+            result.setErrorMsg("操作失败，请联系管理员！");
+        }
+        return result;
+    }
+
+    @RequestMapping("saveWorkOrder")
+    @ResponseBody
+    public ZLResult saveWorkOrder(HttpServletRequest request ){
+        ZLResult result = ZLResult.Success();
+        Map<String, Object> params = getParams();
+        try {
+            ZLRpcResult rpcResult = apitWorkOrderService.saveWorkOrder(params);
+            result = parseRpcResult(rpcResult);
+        }catch (Exception ex){
+            LOGGER.error("保存工单信息系统异常!",ex);
+            result.setErrorMsg("操作失败，请联系管理员！");
+        }
+        return result;
+    }
+
+    @RequestMapping("queryWorkOrderDetail")
+    @ResponseBody
+    public ZLResult queryWorkOrderDetail(HttpServletRequest request){
+        ZLResult result = ZLResult.Success();
+        Map<String, Object> params = getParams();
+        try {
+            ZLRpcResult rpcResult = apitWorkOrderService.queryWorkOrderDetail(params);
+            result = parseRpcResult(rpcResult);
+        }catch (Exception ex){
+            LOGGER.error("查询工单信息系统异常!",ex);
+            result.setErrorMsg("操作失败，请联系管理员！");
+        }
+        return result;
+    }
+
+    @RequestMapping("deleteWorkOrderByCode")
+    @ResponseBody
+    public ZLResult deleteWorkOrderByCode(HttpServletRequest request){
+        ZLResult result = ZLResult.Success();
+        Map<String, Object> params = getParams();
+        try {
+            ZLRpcResult rpcResult = apitWorkOrderService.deleteWorkOrderByCode(params);
+            result = parseRpcResult(rpcResult);
+        }catch (Exception ex){
+            LOGGER.error("删除工单信息系统异常!",ex);
+            result.setErrorMsg("操作失败，请联系管理员！");
+        }
+        return result;
+    }
+
+    /**
+     * 维修单据查询
+     * @param request
+     * @return
+     */
+    @RequestMapping("findWorkOrderByWaitRepair")
+    @ResponseBody
+    public ZLResult findWorkOrderByWaitRepair(HttpServletRequest request){
+        ZLResult result = ZLResult.Success();
+        Map<String, Object> params = getParams();
+        try {
+            ZLRpcResult rpcResult = apitWorkOrderService.findWorkOrderByWaitRepair(params);
+            result = parseRpcResult(rpcResult);
+        }catch (Exception ex){
+            LOGGER.error("查询服务商下工单列表信息系统异常!",ex);
+            result.setErrorMsg("操作失败，请联系管理员！");
+        }
+        return result;
+    }
+
+    @RequestMapping("findWorkOrderByWorkOrderCode")
+    @ResponseBody
+    public ZLResult findWorkOrderByWorkOrderCode(){
+        ZLResult result = ZLResult.Success();
+        Map<String, Object> params = getParams();
+        try {
+            ZLRpcResult rpcResult = apitWorkOrderService.findWorkOrderByWorkOrderCode(params);
+            result = parseRpcResult(rpcResult);
+        }catch (Exception ex){
+            LOGGER.error("维修单据查询工单详情信息系统异常!",ex);
+            result.setErrorMsg("操作失败，请联系管理员！");
+        }
+        return result;
+    }
+}

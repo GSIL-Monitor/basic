@@ -1,0 +1,263 @@
+package com.wgb.controller.mt;
+
+import com.wgb.bean.ZLResult;
+import com.wgb.cache.RedisFactory;
+import com.wgb.exception.ServiceException;
+import com.wgb.service.LoginInfoService;
+import com.wgb.service.portal.PortalUserService;
+import com.wgb.util.*;
+import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+
+@Controller
+@RequestMapping("/entry")
+public class MTPCLoginController extends MTBaseController {
+
+    @Autowired
+    private PortalUserService portalUserService;
+
+    @Autowired
+    private LoginInfoService loginInfoService;
+
+    @RequestMapping("/login/login")
+    @ResponseBody
+    public ZLResult login(HttpServletRequest request, HttpServletResponse response) {
+
+        Map<String, Object> params = getPubParams();
+        params.put("_yzcode", request.getSession().getAttribute("yzcode"));
+
+        //校验登录参数
+        String errorMsg = checkLoginParams(params);
+
+        if (StringUtils.isNotEmpty(errorMsg)) {
+            request.setAttribute("errorMsg", errorMsg);
+            return ZLResult.Error(errorMsg);
+        }
+
+        Map<String, Object> user = portalUserService.getLoginUser(params);
+        //校验登录参数
+        String type = MapUtils.getString(params, "type");
+        if (StringUtils.isEmpty(type)) {
+            errorMsg = "参数错误，请与管理员联系";
+        }else{
+            errorMsg = checkLoginUser(user,type);
+        }
+
+        if (StringUtils.isNotEmpty(errorMsg)) {
+            return ZLResult.Error(errorMsg);
+        }
+
+        String account = MapUtils.getString(user, "account");
+        String token = UUIDGenerator.getUUID();
+
+        //添加sid到服务根路径
+        Cookie cookie = new Cookie(HttpRequestConstant.MT_TOKEN_ID, token);
+        cookie.setMaxAge(2592000);
+        cookie.setPath("/");
+        response.addCookie(cookie);
+
+        RedisFactory.getPassportClient().set(HttpRequestConstant.MT_PC_ACCOUNT_PREFIX + token, account);
+        return ZLResult.Success();
+    }
+
+    @RequestMapping("/login/authorize")
+    public void authorize(HttpServletRequest request, HttpServletResponse response) {
+
+        //通过客户端授权登录
+
+        Map<String, Object> params = getPubParams();
+        String code = MapUtils.getString(params, "code");
+        String redirect_uri = MapUtils.getString(params, "redirect_uri");
+        if (StringUtils.isEmpty(code) || StringUtils.isEmpty(redirect_uri)) {
+            throw new ServiceException(ServiceException.PARAM_MISSING);
+        }
+
+        String account = RedisFactory.getPassportClient().get(HttpRequestConstant.MT_POS_ACCOUNT_PREFIX + code);
+        if (StringUtils.isEmpty(account)) {
+            throw new ServiceException(ServiceException.PARAM_ERROR);
+        }
+
+        String token = UUIDGenerator.getUUID();
+
+        //添加sid到服务根路径
+        Cookie cookie = new Cookie(HttpRequestConstant.MT_TOKEN_ID, token);
+        cookie.setMaxAge(2592000);
+        cookie.setPath("/");
+        response.addCookie(cookie);
+
+        RedisFactory.getPassportClient().set(HttpRequestConstant.MT_PC_ACCOUNT_PREFIX + token, account);
+
+        try {
+            response.sendRedirect(redirect_uri);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @RequestMapping("/login/logout")
+    @ResponseBody
+    public ZLResult logout(HttpServletRequest request, HttpServletResponse response) {
+
+        Map<String, Object> params = HttpRequestUtil.getParams(request);
+        String account = MapUtils.getString(params, Contants.LOGIN_USER_ACCOUNT);
+        //如果处于登录状态，清除缓存
+        if (StringUtils.isNotEmpty(account)) {
+            String menuKey = "portal_menu_" + account;
+            String userKey = "portal_user_" + account;
+            //更新用户数据到redis中
+            RedisFactory.getPassportClient().setMapToJedis(null, userKey);
+            //更新用户数据到redis中
+            RedisFactory.getPassportClient().setListToJedis(null, menuKey);
+        }
+
+        //注销登录
+        HttpSession session = request.getSession();
+        session.invalidate();
+
+        //清除Cookie
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if (cookie.getName().equals(HttpRequestConstant.MT_TOKEN_ID)) {
+                    cookie.setValue(null);
+                    cookie.setMaxAge(0);// 立即销毁cookie
+                    cookie.setPath("/");
+                    response.addCookie(cookie);
+                    break;
+                }
+            }
+        }
+
+        //跳转到登录页面
+        try {
+            response.sendRedirect(SystemConfig.SERVICE_LOGIN_URL);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return ZLResult.Success();
+    }
+
+    /**
+     * @param params
+     * @return
+     */
+    private String checkLoginParams(Map<String, Object> params) {
+
+        String type = MapUtils.getString(params, "type");
+        if (StringUtils.isEmpty(type)) {
+            return "参数错误，请与管理员联系";
+        }
+
+        //快捷登录
+        if (type.equals("account")) {
+
+            String account = MapUtils.getString(params, ("account"));
+            String password = MapUtils.getString(params, ("password"));
+
+            if (StringUtils.isEmpty(account) || StringUtils.isEmpty(password)) {
+                return "用户名或密码不能为空";
+            }
+            params.put("password", MD5Util.GetMD5Code(password));
+        }
+        //普通登录
+        else {
+
+            String shopcode = MapUtils.getString(params, ("shopcode"));
+            String username = MapUtils.getString(params, ("username"));
+            String password = MapUtils.getString(params, ("password"));
+
+            if (StringUtils.isEmpty(shopcode) || StringUtils.isEmpty(username) || StringUtils.isEmpty(password)) {
+                return "商户ID或用户名或密码不能为空";
+            }
+
+            params.put("password", MD5Util.GetMD5Code(password));
+        }
+
+        String yzcode = MapUtils.getString(params, ("yzcode"),"");
+        String _yzcode = MapUtils.getString(params, ("_yzcode"),"");
+
+        if(yzcode.equals(Contants.YZMCODE)){
+            return  "";
+        }
+
+        if (StringUtils.isEmpty(yzcode)) {
+            return "参数错误，请与管理员联系";
+        }
+
+        if (StringUtils.isEmpty(_yzcode)) {
+            return "验证码已过期，请重新输入";
+        }
+
+        if (!yzcode.toLowerCase().equals(_yzcode.toLowerCase())) {
+            return "验证码不正确，请重新输入";
+        }
+        return "";
+    }
+
+    /**
+     * @param user
+     * @return
+     */
+    private String checkLoginUser(Map<String, Object> user,String type) {
+
+        if (type.equals("account")) {
+            if (MapUtils.isEmpty(user)) {
+                return "登录失败，用户名或密码错误";
+            }
+        }else{
+            if (MapUtils.isEmpty(user)) {
+                return "登录失败，商户ID或用户名或密码错误";
+            }
+        }
+
+        List<Map<String, Object>> menuList = loginInfoService.getRemoteMenuList(user);
+        if (menuList == null || menuList.isEmpty() || withoutOwnedMenu(menuList)) {
+            return "您没有权限登陆后台系统";
+        }
+
+        //用户停用
+        String flag = MapUtils.getString(user, "flag", "");
+        if (!flag.equals("1")) {
+            return "用户已被停用";
+        }
+
+        //用户停用
+        String shopstate = MapUtils.getString(user, "shopstate", "");
+        if (!shopstate.equals("1")) {
+            return "商户已被禁用";
+        }
+
+        //门店停业
+        String isused = MapUtils.getString(user, "isused", "");
+        if (!isused.equals("1")) {
+            return "门店已暂停营业";
+        }
+        return "";
+    }
+
+    /**
+     * @param menuList
+     * @return
+     */
+    private boolean withoutOwnedMenu(List<Map<String, Object>> menuList) {
+        for (Map<String, Object> menuItem : menuList) {
+            String owned = MapUtils.getString(menuItem, "owned", "");
+            if (owned.equals("1")) {
+                return false;
+            }
+        }
+        return true;
+    }
+}

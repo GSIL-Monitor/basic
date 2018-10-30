@@ -1,0 +1,215 @@
+package com.wgb.controller.mt.wxshop;
+
+import com.wgb.bean.ZLResult;
+import com.wgb.controller.mt.MTBaseController;
+import com.wgb.dubbo.ZLRpcResult;
+import com.wgb.exception.ServiceException;
+import com.wgb.service.dubbo.wxms.web.ApitWxApplicationService;
+import org.apache.commons.collections.MapUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import javax.servlet.http.HttpServletRequest;
+import java.util.Map;
+
+/**
+ * Created by wgy on 2018/4/19.
+ */
+@Controller
+@RequestMapping("/wxapplication/application")
+public class MTWxApplicationController extends MTBaseController {
+    /*
+     * 查询所有的应用
+     * */
+    @Autowired
+    private ApitWxApplicationService apitWxShopService;
+
+    @RequestMapping("/queryapplication")
+    @ResponseBody
+    public ZLResult queryapplication(HttpServletRequest request) {
+        Map<String, Object> params = getParams();
+        ZLRpcResult zlRpcResult = new ZLRpcResult();
+        try {
+            // 系统调用
+            zlRpcResult = apitWxShopService.queryapplication(params);
+        } catch (Exception ex) {
+            // 系统级别异常
+            throw new ServiceException(ServiceException.SYS_ERROR);
+        }
+        // 判断返回结果
+        if (!zlRpcResult.success()) {
+            throw new ServiceException(zlRpcResult.getErrorMsg());
+        }
+        return ZLResult.Success(zlRpcResult.getList());
+    }
+
+    /*
+     * 我的应用查询
+     * */
+    @RequestMapping("/querymyapplication")
+    @ResponseBody
+    public ZLResult querymyapplication(HttpServletRequest request) {
+        Map<String, Object> params = getParams();
+        ZLRpcResult zlRpcResult = new ZLRpcResult();
+        try {
+            // 系统调用
+            zlRpcResult = apitWxShopService.querymyapplication(params);
+        } catch (Exception ex) {
+            // 系统级别异常
+            throw new ServiceException(ServiceException.SYS_ERROR);
+        }
+        // 判断返回结果
+        if (!zlRpcResult.success()) {
+            throw new ServiceException(zlRpcResult.getErrorMsg());
+        }
+        return ZLResult.Success(zlRpcResult.getList());
+    }
+
+    /*
+     * 点击消息模板的立即使用
+     * 跳转到对应的模板设置页面
+     * */
+    @RequestMapping("/querytempletedetail")
+    @ResponseBody
+    public ZLResult querytempletedetail(HttpServletRequest request) {
+        Map<String, Object> params = getParams();
+        params.put("branchcode", MapUtils.getString(params,"loginuserbranchcode"));
+        ZLRpcResult zlRpcResult = new ZLRpcResult();
+        try {
+            // 系统调用
+            zlRpcResult = apitWxShopService.querytempletedetail(params);
+        } catch (Exception ex) {
+            // 系统级别异常
+            throw new ServiceException(ServiceException.SYS_ERROR);
+        }
+        // 判断返回结果
+        if (!zlRpcResult.success()) {
+            throw new ServiceException(zlRpcResult.getErrorMsg());
+        }
+        return ZLResult.Success(zlRpcResult.getList());
+    }
+
+    /*
+     * 微信设置
+     * 消息通知设置，门店级别，设置模板消息用或者不用
+     *@params shopcode branchcode
+     * 总开关
+     * */
+    @RequestMapping("/updatealltempletestatus")
+    @ResponseBody
+    public ZLResult updatealltempletestatus(HttpServletRequest request) {
+        Map<String, Object> params = getParams();
+        ZLRpcResult zlRpcResult = new ZLRpcResult();
+        try {
+            // 系统调用
+            zlRpcResult = apitWxShopService.updatealltempletestatus(params);
+        } catch (Exception ex) {
+            // 系统级别异常
+            throw new ServiceException(ServiceException.SYS_ERROR);
+        }
+        // 判断返回结果
+        if (!zlRpcResult.success()) {
+            throw new ServiceException(zlRpcResult.getErrorMsg());
+        }
+        return ZLResult.Success();
+    }
+
+    /*
+     * 微信设置
+     * 消息通知设置，门店级别，设置模板消息用或者不用
+     *@params shopcode  branchcode  templteid
+     * 单个开关
+     * */
+    @RequestMapping("/updatesingletempletestatus")
+    @ResponseBody
+    public ZLResult updatesingletempletestatus(HttpServletRequest request) {
+        Map<String, Object> params = getParams();
+        ZLRpcResult zlRpcResult = new ZLRpcResult();
+        try {
+            // 系统调用
+            zlRpcResult = apitWxShopService.updatesingletempletestatus(params);
+        } catch (Exception ex) {
+            // 系统级别异常
+            throw new ServiceException(ServiceException.SYS_ERROR);
+        }
+        // 判断返回结果
+        if (!zlRpcResult.success()) {
+            throw new ServiceException(zlRpcResult.getErrorMsg());
+        }
+        return ZLResult.Success();
+    }
+
+
+    /*
+     * 调用模板消息前作判断看是否开启
+     * @params shopcode,branchcode,templteid(各个模块固定的)
+     * */
+    @RequestMapping("/querytempletestatus")
+    @ResponseBody
+    public ZLResult querytempletestatus(HttpServletRequest request) {
+        Map<String, Object> params = getParams();
+        ZLRpcResult zlRpcResult = new ZLRpcResult();
+        try {
+            // 系统调用
+            zlRpcResult = apitWxShopService.querytempletestatus(params);
+        } catch (Exception ex) {
+            // 系统级别异常
+            throw new ServiceException(ServiceException.SYS_ERROR);
+        }
+        // 判断返回结果
+        if (!zlRpcResult.success()) {
+            throw new ServiceException(zlRpcResult.getErrorMsg());
+        }
+        return ZLResult.Success(zlRpcResult.getMap());
+    }
+
+    /*
+     * 购买小程序
+     * @params
+     * */
+    @RequestMapping("/getMiniApp")
+    @ResponseBody
+    public ZLResult getMiniApp(HttpServletRequest request) {
+        Map<String, Object> params = getParams();
+        ZLRpcResult zlRpcResult = new ZLRpcResult();
+        try {
+            // 系统调用
+            zlRpcResult = apitWxShopService.getMiniApp(params);
+        } catch (Exception ex) {
+            // 系统级别异常
+            throw new ServiceException(ServiceException.SYS_ERROR);
+        }
+        // 判断返回结果
+        if (!zlRpcResult.success()) {
+            throw new ServiceException(zlRpcResult.getErrorMsg());
+        }
+        return ZLResult.Success(zlRpcResult.getMap());
+    }
+
+
+    /*
+     * 商家购买小程序购买的订单记录
+     * @params
+     * */
+    @RequestMapping("/getMiniAppOrder")
+    @ResponseBody
+    public ZLResult getMiniAppOrder(HttpServletRequest request) {
+        Map<String, Object> params = getParams();
+        ZLRpcResult zlRpcResult = new ZLRpcResult();
+        try {
+            // 系统调用
+            zlRpcResult = apitWxShopService.getMiniAppOrder(params);
+        } catch (Exception ex) {
+            // 系统级别异常
+            throw new ServiceException(ServiceException.SYS_ERROR);
+        }
+        // 判断返回结果
+        if (!zlRpcResult.success()) {
+            throw new ServiceException(zlRpcResult.getErrorMsg());
+        }
+        return ZLResult.Success(zlRpcResult.getData());
+    }
+
+}

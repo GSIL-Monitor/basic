@@ -1,0 +1,201 @@
+package com.wgb.controller.sp.user;
+
+import com.wgb.bean.ZLResult;
+import com.wgb.controller.sp.SPBaseController;
+import com.wgb.dao.Page;
+import com.wgb.dubbo.ZLRpcResult;
+import com.wgb.service.dubbo.srvms.web.ApitSrvUserService;
+import com.wgb.util.Contants;
+import com.wgb.util.MD5Util;
+import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import javax.servlet.http.HttpServletRequest;
+import java.util.Map;
+
+/**
+ * Created by yjw on 2017/11/8.
+ */
+@Controller
+@RequestMapping("/srv/user")
+public class SrvUserController extends SPBaseController {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(SrvUserController.class);
+
+    @Autowired
+    private ApitSrvUserService apitSrvUserService;
+
+    /**
+     * 获取用户分页列表数据
+     * @param request
+     * @return
+     */
+    @RequestMapping("/queryUserPage")
+    @ResponseBody
+    public ZLResult queryUserPage(HttpServletRequest request) {
+        ZLResult result = ZLResult.Success();
+        try {
+            Map<String, Object> params = getParams();
+            ZLRpcResult rpcResult = apitSrvUserService.queryUserPage(params);
+            if (rpcResult.success()){
+                Page<?> pageInfo = (Page<?>)rpcResult.getData();
+                result.setData(pageInfo);
+                return result;
+            }
+            LOGGER.error("调用RPC查询服务商用户列表信息失败",rpcResult.getErrorMsg());
+            result.setErrorMsg("查询服务商用户列表信息失败，请联系管理员");
+        }catch (Exception e){
+            LOGGER.error("查询服务商用户列表系统异常!",e);
+            result = ZLResult.Error("查询服务商用户列表信息失败，请联系管理员!");
+        }
+        return result;
+    }
+
+    /**
+     * 删除用户
+     * @param request
+     * @return
+     */
+    @RequestMapping("/delUser")
+    @ResponseBody
+    public ZLResult delUser(HttpServletRequest request) {
+        ZLResult result = ZLResult.Success();
+        try {
+            Map<String, Object> params = getParams();
+            String id = MapUtils.getString(params, "id", "");
+            if (StringUtils.isEmpty(id)) {
+                result.setErrorMsg("缺失参数");
+                return result;
+            }
+            ZLRpcResult rpcResult = apitSrvUserService.delUser(params);
+            result = parseRpcResult(rpcResult);
+        }catch (Exception e){
+            LOGGER.error("删除服务商用户信息系统异常!",e);
+            result.setErrorMsg("操作失败，请联系管理员!");
+        }
+        return result;
+    }
+
+    /**
+     * 重置用户密码
+     * @param request
+     * @return
+     */
+    @RequestMapping("/resetUserPassword")
+    @ResponseBody
+    public ZLResult resetUserPassword(HttpServletRequest request) {
+        ZLResult result = ZLResult.Success();
+        try {
+            Map<String, Object> params = getParams();
+            String id = MapUtils.getString(params, "id", "");
+            if (StringUtils.isEmpty(id)) {
+                result.setErrorMsg("缺失参数id！");
+                return result;
+            }
+            ZLRpcResult rpcResult = apitSrvUserService.resetUserPassword(params);
+            result = parseRpcResult(rpcResult);
+        }catch (Exception e){
+            LOGGER.error("重置服务商用户密码系统异常!",e);
+            result.setErrorMsg("操作失败,请联系管理员!");
+        }
+        return result;
+    }
+
+    /**
+     * 新增用户
+     * @param request
+     * @return
+     */
+    @RequestMapping("/saveUser")
+    @ResponseBody
+    public ZLResult saveUser(HttpServletRequest request) {
+        ZLResult result = ZLResult.Success();
+        try {
+            Map<String, Object> params = getParams();
+            ZLRpcResult rpcResult = apitSrvUserService.saveUser(params);
+            result = parseRpcResult(rpcResult);
+        }catch (Exception e){
+            LOGGER.error("新增服务商用户系统异常!",e);
+            result.setErrorMsg("操作失败,请联系管理员!");
+        }
+        return result;
+    }
+
+    /**
+     * 查询修改服务商商户详情资料
+     * @param request
+     * @return
+     */
+    @RequestMapping("/querySrvUserInfoAndRoleListById")
+    @ResponseBody
+    public ZLResult querySrvUserInfoAndRoleListById(HttpServletRequest request) {
+        ZLResult result = ZLResult.Success();
+        try {
+            Map<String, Object> params = getParams();
+            String id = MapUtils.getString(params, "id", "");
+            if (StringUtils.isEmpty(id)) {
+                result.setErrorMsg("缺失参数");
+                return result;
+            }
+            ZLRpcResult rpcResult = apitSrvUserService.querySrvUserInfoAndRoleListById(params);
+            result = parseRpcResult(rpcResult);
+        }catch (Exception e){
+            LOGGER.error("查询服务商修改用户详情系统异常!",e);
+            result.setErrorMsg("操作失败,请联系管理员!");
+        }
+        return result;
+    }
+
+    /**
+     * 更新用户
+     * @param request
+     * @return
+     */
+    @RequestMapping("/updateSrvUser")
+    @ResponseBody
+    public ZLResult update(HttpServletRequest request) {
+        ZLResult result = ZLResult.Success();
+        try {
+            Map<String, Object> params = getParams();
+            //更新用户信息
+            ZLRpcResult rpcResult = apitSrvUserService.updateUser(params);
+            result = parseRpcResult(rpcResult);
+        }catch (Exception e){
+            LOGGER.error("查询服务商修改用户详情系统异常!",e);
+            result.setErrorMsg("操作失败,请联系管理员!");
+        }
+        return result;
+    }
+
+    /**
+     * 更新用户
+     * @param request
+     * @return
+     */
+    @RequestMapping("/updatePassword")
+    @ResponseBody
+    public ZLResult updatePassword(HttpServletRequest request) {
+        ZLResult result = ZLResult.Success();
+        try {
+            Map<String, Object> params = getParams();
+            params.put("newpassword" ,MD5Util.GetMD5Code(MapUtils.getString(params ,"newpassword")));
+            params.put("oldpassword" ,MD5Util.GetMD5Code(MapUtils.getString(params ,"oldpassword")));
+            params.put("account" ,MapUtils.getString(params , Contants.LOGIN_USER_SERVER_ACCOUNT));
+            //更新用户信息
+            ZLRpcResult rpcResult = apitSrvUserService.updatePasswordForUser(params);
+            result = parseRpcResult(rpcResult);
+        }catch (Exception e){
+            LOGGER.error("修改鼓舞上密码系统异常!",e);
+            result.setErrorMsg("操作失败,请联系管理员!");
+        }
+        return result;
+    }
+
+
+}

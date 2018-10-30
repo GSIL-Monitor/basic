@@ -1,0 +1,810 @@
+package com.wgb.util;
+
+/**
+ * 〈〉<br>
+ * 〈功能详细描述〉
+ *
+ * @author 15041424
+ * @see [相关类/方法]（可选）
+ * @since [产品/模块版本] （可选）
+ */
+public class Contants {
+
+    /**
+     * 菜单根节点父节点
+     */
+    public static final String NODE_PARENT_PID = "-1";
+
+    /**
+     * 唯一业务编码
+     * 根据shopcode 或 shopcode + branchcode 能够确定唯一的业务编码
+     */
+    public final static String BUSINESS_CODE = "loginuserbusinesscode";
+
+
+    /**
+     * 注册邮件类型，缓存前缀
+     */
+    public static final String EMAIL_REG_TYPE = "EMAIL_REG_";
+
+    /**
+     * 忘记密码邮件类型，缓存前缀
+     */
+    public static final String EMAIL_RESET_TYPE = "EMAIL_RESET_";
+
+    public static final String SEQ_BARCODE = "barcode";
+
+    /**
+     * 角色默认管理员编码
+     */
+    public static final String ROLE_ADMIN_CODE = "0001";
+
+    /**
+     * 角色默认收银员编码
+     */
+    public static final String ROLE_CASHIER_CODE = "0002";
+
+    /**
+     * 角色默认导购员编码
+     */
+    public static final String ROLE_SALER_CODE = "0003";
+
+    /**
+     * 角色默认店长编码
+     */
+    public static final String ROLE_SHOPOWNER_CODE = "0004";
+
+    /**
+     * 前台收银权限 - 充值
+     */
+    public static final String CASHIER_GRANT_13 = "13";
+
+    /**
+     * 充值权限 - 已授权
+     */
+    public static final String ISRECHARGE_ON = "1";
+
+    /**
+     * 充值权限 - 未授权
+     */
+    public static final String ISRECHARGE_OFF = "0";
+
+    /**
+     * 毛利 商品
+     */
+    public static final String PROFITTYPE_ONE = "1";
+
+    /**
+     * 毛利 分类
+     */
+    public static final String PROFITTYPE_TWO = "2";
+
+    /**
+     * 毛利 品牌
+     */
+    public static final String PROFITTYPE_THREE = "3";
+
+    /**
+     * 毛利 门店
+     */
+    public static final String PROFITTYPE_FOUR = "4";
+
+
+    /**
+     * 订单状态 - 已支付
+     */
+    public static final String ORDER_STATUS_PAID = "5";
+
+    /**
+     * 系统缺省数据
+     */
+    public static final String DATA_REQUIRED = "1";
+
+    /**
+     * 非系统缺省数据
+     */
+    public static final String DATA_NO_REQUIRED = "0";
+
+    /** ---------------------------登陆用户相关的信息--------------------------------**/
+
+    /**
+     * 唯一业务编码
+     * 根据shopcode 或 shopcode + branchcode 能够确定唯一的业务编码
+     */
+    public final static String LOGIN_USER_BUSINESS_CODE = "loginuserbusinesscode";
+
+
+    /**
+     * 登录用户门店条件
+     */
+    public final static String LOGIN_USER_SHOP_TEL = "loginusershoptel";
+
+
+    /**
+     * 默认配送方式
+     */
+    public final static String LOGIN_USER_DEFAULT_DISTPRICETYPE = "loginuserdefaultdistpricetype";
+
+
+    /**
+     * 用户名
+     */
+    public final static String LOGIN_USER_NAME = "loginusername";
+
+    /**
+     * 账号
+     */
+    public final static String LOGIN_USER_ACCOUNT = "loginuseraccount";
+
+    /**
+     * 配货地方编码
+     */
+    public final static String LOGIN_USER_DEFAULT_DISTCENTERCODE = "loginuserdefaultdistcentercode";
+
+    /**
+     * 参考价门店
+     */
+    public final static String LOGIN_USER_REFER_PRICE_BRANCHCODE = "loginuserreferpricebranchcode";
+
+    /**
+     * 是否美团映射门店0否1是
+     */
+    public final static String LOGIN_USER_IS_MEITUAN_MAPPING = "loginuserismeituanmapping";
+
+    /**
+     * 0-非独立支付 1-独立支付
+     */
+    public final static String LOGIN_USER_IS_BRANCH_PAY = "loginuserisbranchpay";
+
+    /**
+     * 商户名称
+     */
+    public final static String LOGIN_USER_SHOP_NAME = "shopname";
+
+    /**
+     * 供应商名称
+     */
+    public final static String LOGIN_USER_SCP_NAME = "loginscpname";
+
+    /**
+     * 商户名称
+     */
+    public final static String LOGIN_USER_SHOP_SOFTWARETYPE = "softwaretype";
+
+
+    /** ---------------------------登陆用户相关的信息---------------------------------------**/
+
+    /**
+     * 发送优惠劵模板(rides)
+     */
+    public final static String SEND_COUPON_TEMPLATE = "SEND_COUPON_TEMPLATE_";
+
+    public static final String SYS_ADMIN = "admin";
+
+    /**
+     * 菜单根节点父节点
+     */
+    public static final String MENU_ROOT_PARENT_ID = "-1";
+
+    /**
+     * 部门根节点父节点
+     */
+    public static final String ORG_ROOT_PARENT_ID = "-1";
+
+    /**
+     * 重置后的密码
+     */
+    public static final String UNDO_PASSWORD = "1";
+
+    /**
+     * 分页默认开始
+     */
+    public final static int PAGE_START = 1;
+
+    /**
+     * 分页默认行数
+     */
+    public final static int PAGE_SIZE = 10;
+
+    /**
+     * 登录用户ID
+     */
+    public final static String LOGIN_USER_ID = "loginuserid";
+    /**
+     * 登录用户ID
+     */
+    public final static String LOGIN_USER_FULL_NAME = "loginuserfullname";
+
+    /**
+     * 登录店铺编码
+     */
+    public final static String LOGIN_USER_SHOP_CODE = "shopcode";
+
+    /**
+     * 登供应商编码
+     */
+    public final static String LOGIN_USER_SCP_CODE = "scpcode";
+
+    /**
+     * 登录小程序用户编码
+     */
+    public final static String LOGIN_SCP_XCX_USER_CODE = "usercode";
+
+    /**
+     * 登录小程序用户编码
+     */
+    public final static String LOGIN_SCP_XCX_USER_OPENID = "openid";
+
+    /**
+     * 登录小程序用户手机
+     */
+    public final static String LOGIN_SCP_XCX_USER_TELEPHONE = "telephone";
+
+    /**
+     * 登录小程序用户类型
+     */
+    public final static String LOGIN_SCP_XCX_USER_TYPE = "usertype";
+
+    /**
+     * 登录门店ID
+     */
+    public final static String LOGIN_USER_BRANCH_ID = "loginuserbranchcode";
+
+    /**
+     * 登录门店名称
+     */
+    public final static String LOGIN_USER_BRANCH_NAME = "loginuserbranchname";
+
+    /**
+     * 登录门店编码
+     */
+    public final static String LOGIN_USER_BRANCH_CODE = "loginuserbranchcode";
+
+    /**
+     * 登录导购员编码
+     */
+    public final static String LOGIN_USER_ASSISTANT_ID = "assistantid";
+
+
+    /**
+     * 行业编码
+     */
+    public static final String INDUSTRYID = "industryid";
+
+    /**
+     * 行业名称
+     */
+    public static final String INDUSTRYNAME = "industryname";
+
+
+    /**
+     * 门店会员模式
+     */
+
+    public final static String LOGIN_USER_MEMBERMODEL = "loginusermembermodel";
+
+    /**
+     * 登录用户门店条件
+     */
+    public final static String LOGIN_USER_BRANCH_ISHEAD = "loginuserbranchishead";
+
+    /**
+     * 是否独立支付
+     */
+    public final static String LOGIN_USER_BRANCH_PAY = "loginuserisbranchpay";
+
+    /**
+     * 用户客户端IP
+     */
+    public final static String USER_IP = "IP";
+
+    /**
+     * 归档路径
+     */
+    public final static String ATTACH_URL = "attachUrl";
+
+    /**
+     * 分页对象参数
+     */
+    public static final String PAGE_INFO = "pageInfo";
+
+    /**
+     * SESSION 中用户信息 KEY
+     */
+    public static final String USER_INFO = "userInfo";
+
+    /**
+     * 图片
+     */
+    public static final String FILE_TYPE_IMAGE = "image";
+
+    /**
+     * 视频
+     */
+    public static final String FILE_TYPE_VIDEO = "video";
+
+    /**
+     * 图片文件
+     */
+    public static final String IMAGE_SUFFIX = "gif,jpg,jpeg,png";
+
+    /**
+     * 视频文件
+     */
+    public static final String VIDEO_SUFFIX = "mp4";
+
+    /**
+     * 部门经理
+     */
+    public static final String ROLE_ORG_MANAGER = "8";
+
+    /**
+     * 短信注册模板验证码
+     */
+    public static final String SMS_REG_TEMPLATE_CODE = "SMS_30115136";
+
+    /**
+     * 身份识别验证码发送
+     */
+    public static final String API_SMS_DIST_TYPE = "SMS_DIST_";
+
+    public static final String API_SMS_DIST_URL = "/sendVerificationCode";
+    public static final String API_SMS_DIST_CHECK_URL = "checkVerificationCode";
+
+    public static final String SHARDNAME = "shardname";
+    public static final String DEFAULT_SHARDNAME = "shard0";
+
+    /**
+     * 注册短信类型，缓存前缀
+     */
+    public static final String SMS_REG_TYPE = "SMS_REG_";
+
+    /**
+     * 忘记密码短信类型，缓存前缀
+     */
+    public static final String SMS_RESET_TYPE = "SMS_RESET_";
+
+    /**
+     * 小程序绑定手机号类型，缓存前缀
+     */
+    public static final String SMS_XCX_BIND_TEL_TYPE = "SMS_XCX_TEL_";
+
+    /**
+     * 营销助手小程序忘记密码，缓存前缀
+     */
+    public static final String SMS_SG_XCX = "SMS_SG_XCX_";
+
+    /**
+     * 小程序绑定商户类型，缓存前缀
+     */
+    public static final String SMS_XCX_BIND_SHOP_TYPE = "SMS_XCX_SHOP_";
+
+    /**
+     * 无卡消费授权短信类型，缓存前缀
+     */
+    public static final String SMS_MEMBER_PAY_AUTH_TYPE = "SMS_MEMBER_PAY_AUTH_";
+
+    /**
+     * 有卡消费授权短信类型，缓存前缀
+     */
+    public static final String SMS_MEMBER_CARDPAY_AUTH_TYPE = "SMS_MEMBER_CARDPAY_AUTH_";
+
+    /**
+     * 账户余额消费
+     */
+    public static final String SMS_MEMBER_ACCOUNT_PAY_TYPE = "SMS_MEMBER_ACCOUNT_PAY_";
+
+    /**
+     * 充值会员卡消费
+     */
+    public static final String SMS_MEMBER_CODE_PAY_TYPE = "SMS_MEMBER_CODE_PAY_";
+
+    /**
+     * 充值会员卡消费
+     */
+   // public static final String SMS_MEMBER_PAY_TYPE = "SMS_MEMBER_PAY_";
+
+    /**
+     * 会员余额变动通知（包括充值和消费）
+     */
+    public static final String SMS_MEMBER_AMOUNT_UPDATE_TYPE = "SMS_MEMBER_AMOUNT_UPDATE_";
+    /**
+     * 账户余额消费
+     */
+    public static final String SMS_MEMBER_ACCOUNT_RECHARGE_TYPE = "SMS_MEMBER_ACCOUNT_RECHARGE_";
+
+    /**
+     * 账户余额消费
+     */
+    public static final String SMS_MEMBER_COUNTCARD_PAY_TYPE = "SMS_MEMBER_COUNTCARD_PAY_";
+
+
+    /**
+     * 会员余额变动通知（包括充值和消费）
+     */
+    public static final String SMS_MEMBER_REFUND_TYPE = "SMS_MEMBER_REFUND_";
+
+    /**
+     * 忘记密码短信类型，缓存前缀
+     */
+    public static final String SMS_LOGIN_TYPE = "SMS_LOGIN_";
+
+    /**
+     * 身份识别
+     */
+    public static final String SMS_DIST_TYPE = "SMS_DIST_";
+
+    /**
+     * 微信扫码支付
+     */
+    public static final String PAYTYPE_WX_SM = "60000";
+
+    /**
+     * 微信刷卡支付
+     */
+    public static final String PAYTYPE_WX_SK = "60000";
+
+    /**
+     * 支付宝扫码支付
+     */
+    public static final String PAYTYPE_ALI_SM = "60000";
+
+    /**
+     * 支付宝刷卡支付
+     */
+    public static final String PAYTYPE_ALI_SK = "60000";
+
+    /**
+     * access 前缀
+     */
+    public static final String ACCESS_CODE_PREFIX = "AC_";
+
+    /**
+     * 客户付端支付
+     */
+    public static final String API_CLIENT_SALE_PAY = "api-clientSalePay";
+
+    /**
+     * 支付宝退款类型
+     */
+    public static final String AIPAYREFUNDTYPE = "2";
+
+    /**
+     * 支付宝退款类型-2.0版本
+     */
+    public static final String AIPAYREFUNDTYPENEW = "22";
+
+    /**
+     * 微信退款类型
+     */
+    public static final String WXPAYREFUNDTYPE = "3";
+
+    /**
+     * 微信退款类型---2.0版本
+     */
+    public static final String WXPAYREFUNDTYPENEW = "33";
+
+    /**
+     * 次卡退款类型
+     */
+    public static final String COUNTREFUNDTYPE = "4";
+
+    /**
+     * 会员退款类型
+     */
+    public static final String MEMBERREFUNDTYPE = "5";
+
+    /**
+     * 预付卡退款类型
+     */
+    public static final String PRECARDREFUNDTYPE = "6";
+
+    /**
+     * 供应商注册验证码
+     */
+    public static final String SCP_YZM_REG = "REG";
+
+    /**
+     * 供应商忘记密码验证码
+     */
+    public static final String SCP_YZM_FORGET = "FORGET";
+
+    /**
+     * 供应商小程序绑定手机验证码
+     */
+    public static final String SCP_YZM_XCX_TEL = "BIANDTEL";
+
+    /**
+     * 供应商小程序绑定商户验证码
+     */
+    public static final String SCP_YZM_XCX_SHOP = "BIANDSHOP";
+
+    /**
+     * 监视客流量KEY
+     */
+    public static final String MONITOR_ACCESS_TOKEN = "monitorAccessToken";
+    /**
+     * 消息校验Token
+     */
+    public static final String MESSAGE_TOKEN = "123456";
+    /**
+     * 消息加解密Key
+     */
+    public static final String MSG_KEY = "abcdefg1234567abcdefg1234567abcdefg12345670";
+    /**
+     * 第三方平台的AppID:wx039158dd1b0e5f81
+     */
+    public static final String COMMONT_APPID = "wx039158dd1b0e5f81";
+
+    /**
+     * 中仑网络测试公众号-用以申请的shopcode
+     */
+    public static final String ZHOLGLUN_NETTEST_SHOPCODE = "wxscan_shopcode_12580";
+
+    /**
+     * 苏州中仑网络：administrator@zhonglunnet.com szzhonglun001 -appid
+     */
+    public static final String ZHOLGLUN_NETTEST_WXPUBAPPID = "wxab4bacd11755f9f3";
+
+    /**
+     * 苏州中仑网络：administrator@zhonglunnet.com szzhonglun001 公众号-appsecret
+     */
+    public static final String ZHOLGLUN_NETTEST_WXPUBAPPSECRET = "748a8b551cab222fd4a7e64c79d8b494";
+
+
+    /**
+     * 第三方平台要授权的帐号类型， 1 公众号
+     */
+    public static final String COMPONENT_TYPE_GZH = "1";
+
+    /**
+     * 第三方平台要授权的帐号类型， 2 小程序
+     */
+
+    public static final String COMPONENT_TYPE_XCX = "2";
+
+    /**
+     * 使用授权码换取公众号或小程序的接口调用凭据和授权信息的url
+     */
+    public static final String API_QUERY_AUTH_URL = "https://api.weixin.qq.com/cgi-bin/component/api_query_auth?component_access_token=COM_ACC_TOKEN";
+
+
+    /**
+     * 公众号获取授权方的帐号基本信息
+     */
+    public static final String GET_GZH_INFO_URL = "https://api.weixin.qq.com/cgi-bin/component/api_get_authorizer_info?component_access_token=COM_ACC_TOKEN";
+
+
+    /**
+     * 第三方平台的APPSECRET= "0728cfcf952e15c4a527d52ed2cac1dc";
+     */
+    public static final String COMMONT_APPSECRET = "0728cfcf952e15c4a527d52ed2cac1dc";
+    /**
+     * 获取第三方平台component_access_token
+     */
+    public static final String COMMONT_ACCESSTOKEN_URL = "https://api.weixin.qq.com/cgi-bin/component/api_component_token";
+    /**
+     * 获取第三方平台的预授权码PreAuthCode
+     */
+    public static final String COMMONT_PREAUTHCODE_URL = "https://api.weixin.qq.com/cgi-bin/component/api_create_preauthcode?component_access_token=COMPONENTACCESSTOKEN";
+
+    /**
+     * 绑定二维码的地址
+     */
+    public static final String COMMONT_LOGINPAGE_URL = "https://api.weixin.qq.com/cgi-bin/component/api_create_preauthcode?component_access_token=COMPONENTACCESSTOKEN";
+
+    /**
+     * 获取授权的二维码
+     */
+    public static final String COMMONT_GETQRCODE = "https://mp.weixin.qq.com/cgi-bin/componentloginpage";
+    /**
+     * 取消授权
+     */
+    public static final String UNAUTHORIZED = "unauthorized";
+
+    /**
+     * 授权
+     */
+    public static final String authorized = "authorized";
+
+    /**
+     * 更新授权
+     */
+    public static final String UPDATEAUTHORIZED = "updateauthorized";
+
+    /*
+    * 解除第三方绑定的URL
+    * */
+    public static final String UNBIND_THETHIRDPADT = "https://api.weixin.qq.com/cgi-bin/open/unbind?access_token=ACCESS_TOKEN";
+
+    /*
+    * 刷新令牌获取最新的令牌的URL
+    * */
+    public static final String NEW_ACCESSTOKRN_URL = "https://api.weixin.qq.com/cgi-bin/component/api_authorizer_token?component_access_token=COMPONENT_ACCESS_TOKEN";
+
+    /**
+     * 绑定到开放平台帐号的URL(不创建开放平台账号)
+     */
+    public static final String OPEN_BIND_URL = "https://api.weixin.qq.com/cgi-bin/open/bind?access_token=TOKEN";
+
+    /**
+     * 绑定到开放平台帐号的URL(创建开放平台账号)
+     */
+    public static final String OPEN_BIND_CREATE_URL = "https://api.weixin.qq.com/cgi-bin/open/create?access_token=TOKEN";
+
+    /*
+   * 解绑完第三方开放平台后还要解绑开放平台
+   * */
+    public static final String DEL_OPENURL = "https://api.weixin.qq.com/cgi-bin/open/unbind?access_token=ACCESS_TOKEN";
+    /*
+    * 获取小程序代码模板的url
+    * */
+    public static final String GET_XCX_MODEL = "https://api.weixin.qq.com/wxa/gettemplatelist?access_token=TOKEN";
+    /**
+     * 设置小程序服务器域名的URL
+     */
+    public static final String MODIFY_DOMAIN_URL = "https://api.weixin.qq.com/wxa/modify_domain?access_token=TOKEN";
+
+    /**
+     * 设置小程序业务域名的URL
+     */
+    public static final String SETWEBVIEWDOMAIN_URL = "https://api.weixin.qq.com/wxa/setwebviewdomain?access_token=TOKEN";
+
+    /*
+    * 上传小程序代码的Url
+    * */
+    public static final String UPLOADCODE_URL = "https://api.weixin.qq.com/wxa/commit?access_token=TOKEN";
+
+    /*
+    * 提交代码包的审核
+    * */
+    public static final String AUDIT_XCX_CODE = " https://api.weixin.qq.com/wxa/submit_audit?access_token=TOKEN";
+    /*
+    * 查询类目的Url
+    * */
+    public static final String CHOSEN_CATEGORY = "https://api.weixin.qq.com/wxa/get_category?access_token=TOKEN";
+
+    /*
+    * 查询页面配置的url
+    * */
+    public static final String PAGE_SET = "https://api.weixin.qq.com/wxa/get_page?access_token=TOKEN";
+    /*
+    * 微商城小程序的提交的审核页面
+    * */
+    public static final String XCX_HOME_PAGE = "page/components/welcome/welcome";
+
+    /*
+    * 小程序标签
+    * */
+    public static final String TAG = "商超便利";
+
+    /*
+    * 一级类目
+    * */
+    public static final String FIRST_CLASS = "商家自营";
+    /*
+    * 二级类目
+    * */
+    public static final String SECOND_CLASS = "服装/鞋/箱包";
+
+    /*
+    * 审核通过后发布小程序
+    * */
+    public static final String ISSURE_XCX = "https://api.weixin.qq.com/wxa/release?access_token=TOKEN";
+    /*
+    * 小程序开发账号：中仑微商城体验端   wx0aed4d7f6ad2536b
+    * */
+    public static final String ZL_WSC_TY = "wx0aed4d7f6ad2536b";
+    /*
+   * 小程序开发账号：中仑网络测试号   wx926e5cdd79a1dd16
+   * */
+    public static final String ZL_WLCS = "wx926e5cdd79a1dd16";
+
+    /*
+    * 85009，小程序代码已经在审核中不要二次提交
+    * */
+    public static final String AUDIT_ERROR_CODE = "85009";
+    /*
+    * 过期时间
+    * */
+    public static final int EXPRETIME = 7200;
+    /*
+    * 代码发布成功 0
+    * */
+    public static final String COMMIT_ERRCODE ="0";
+
+    /*
+    * 审核状态未满足发布
+    * */
+    public static final String COMMIT_FAILED_DISSATISFY="85020";
+    /*
+    * 没有审核版本
+    * */
+    public static final String COMMIT_FAILED_UNAUDIT="85019";
+    /*
+       * 系统繁忙
+       * */
+    public static final String COMMIT_FAILED_SYSTEMBUSY="-1";
+    /*
+    * 小程序已发布
+    * */
+    public static final String APP_ALREADY_RELEASED = "85052";
+    /*
+    * 用户授权请求code的重定向路径
+    * */
+    public static final String GET_CODE = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=AUTHAPPID&redirect_uri=REDIRECT_URI&response_type=code&scope=SCOPE&state=STATE&component_appid=COMPONENT_APPID#wechat_redirect";
+    /*
+    * 走开放平台获取网页授权用的access_token
+    * */
+    public static final String OPEN_ACCESS_TOKEN ="https://api.weixin.qq.com/sns/oauth2/component/access_token?appid=AUTHAPPID&code=CODE&grant_type=authorization_code&component_appid=COMPONENT_APPID&component_access_token=COMPONENT_ACCESS_TOKEN";
+
+    /**
+     *第三方平台开发者的服务器使用登录凭证 code 以及第三方平台的component_access_token 获取 session_key 和 openid
+     */
+    public static  final String JSCODE_SESSION = "https://api.weixin.qq.com/sns/component/jscode2session?appid=AUTHAPPID&js_code=JSCODE&grant_type=authorization_code&component_appid=COMPONENT_APPID&component_access_token=ACCESS_TOKEN";
+
+
+    /**
+     * 授权注册页面扫码授权
+     */
+    public static  final String COMPONENT_LOGINPAG = "https://mp.weixin.qq.com/cgi-bin/componentloginpage?component_appid=componentappid&pre_auth_code=preauthcode&redirect_uri=redirecturi&auth_type=authtype" ;
+
+    /**
+     * 服装鞋帽行业id
+     */
+    public static final String CLOTHES_INDUSTRYID = "12";
+
+    //会员余额变动通知templateCode（包括充值和消费）
+    public static final String SMS_147410130 = "SMS_147410130";
+
+    //订单退款通知
+    public static final String SMS_147410115 = "SMS_147410115";
+
+    //计次卡消费通知
+    public static final String SMS_147415066 = "SMS_147415066";
+
+    //万能验证码
+    public static final String YZMCODE = "SUZL";
+
+    //小程序代码提交审核通过
+    public static final String XCX_DMAUDIT_SUCESS = "weapp_audit_success";
+
+    //小程序代码提交审核失败
+    public static final String XCX_DMAUDIT_FAILED = "weapp_audit_fail";
+
+    /**
+     * 短信退款成功发短信开关
+     */
+    public static final String SMS_ORDERREFUNDSUCESS="orderrefusedsucess";
+
+    /**
+     * 短信储值变动短信开关
+     */
+    public static final String SMS_STOREDCHANGE="storedchange";
+
+    /**
+     * 短信次卡消费开关
+     */
+    public static final String SMS_CIKACHANGE="cikachange";
+
+    /**
+     * 服务商 名称 code
+     */
+    public static final String LOGIN_USER_SERVER_CODE= "servercode";
+    public static final String LOGIN_USER_SERVER_NAME= "servername";
+    public static final String LOGIN_USER_IS_REQUIRED= "required";
+    public static final String LOGIN_USER_SERVER_ACCOUNT= "loginuseraccount";
+
+    //全部门店编码
+    public static final String ALL_BRANCH_CODE= "000";
+    //全部门店
+    public static final String ALL_BRANCH_NAME= "全部门店";
+    /**
+     *  String 常量
+     */
+    public static final String STR_ZERO = "0";
+    public static final String STR_ONE = "1";
+    public static final String STR_TWO = "2";
+    public static final String STR_THREE = "3";
+
+}

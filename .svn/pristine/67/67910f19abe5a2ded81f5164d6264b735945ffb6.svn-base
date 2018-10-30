@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<sqlMap namespace="shardName.com.wgb.service.impl.portal.PortalUserRoleServiceImpl" jdbcTimeout="5">
+
+	<sql id="getUserRoleList">
+		<![CDATA[
+		    select roleid,userid from portal_user_role where userid = :userid
+    	]]>
+	</sql>
+
+</sqlMap>

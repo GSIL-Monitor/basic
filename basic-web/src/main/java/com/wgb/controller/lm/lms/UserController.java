@@ -1,0 +1,144 @@
+package com.wgb.controller.lm.lms;
+
+import com.wgb.bean.ZLResult;
+import com.wgb.controller.lm.LMXCXBaseController;
+import com.wgb.dubbo.ZLRpcResult;
+import com.wgb.exception.ServiceException;
+import com.wgb.service.dubbo.lms.web.ApitUserService;
+import com.wgb.service.dubbo.urms.web.ApitShopService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import java.util.Map;
+
+/**
+ * By chmin
+ */
+@Controller
+@RequestMapping("lms/user")
+public class UserController extends LMXCXBaseController {
+
+    @Autowired
+    private ApitUserService apitUserService;
+    @Autowired
+    private ApitShopService apitShopService;
+
+    @RequestMapping("selectCollections")
+    @ResponseBody
+    public ZLResult selectCollections(){
+        Map<String, Object> params = getParams();
+        ZLRpcResult zlRpcResult = null;
+        try {
+            zlRpcResult = apitUserService.selectCollections(params);
+        } catch (ServiceException sx) {
+            throw sx;
+        } catch (Exception ex) {
+            throw new ServiceException(ServiceException.SYS_ERROR);
+        }
+        if (!zlRpcResult.success()) {
+            return ZLResult.Error(zlRpcResult.getErrorMsg());
+        }
+        return ZLResult.Success(zlRpcResult.getData());
+    }
+
+    @RequestMapping("selectCourse")
+    @ResponseBody
+    public ZLResult selectCourse(){
+        Map<String, Object> params = getParams();
+        ZLRpcResult zlRpcResult = null;
+        try {
+            zlRpcResult = apitUserService.selectCourse(params);
+        } catch (ServiceException sx) {
+            throw sx;
+        } catch (Exception ex) {
+            throw new ServiceException(ServiceException.SYS_ERROR);
+        }
+        if (!zlRpcResult.success()) {
+            return ZLResult.Error(zlRpcResult.getErrorMsg());
+        }
+        return ZLResult.Success(zlRpcResult.getData());
+    }
+
+    @RequestMapping("selectScore")
+    @ResponseBody
+    public ZLResult selectScore(){
+        Map<String, Object> params = getParams();
+        ZLRpcResult zlRpcResult = null;
+        try {
+            zlRpcResult = apitUserService.selectScore(params);
+        } catch (ServiceException sx) {
+            throw sx;
+        } catch (Exception ex) {
+            throw new ServiceException(ServiceException.SYS_ERROR);
+        }
+        if (!zlRpcResult.success()) {
+            return ZLResult.Error(zlRpcResult.getErrorMsg());
+        }
+        return ZLResult.Success(zlRpcResult.getData());
+    }
+
+    @RequestMapping("updateShopInfo")
+    @ResponseBody
+    public ZLResult updateShopInfo(){
+        //获取入参数据
+        Map<String, Object> params = getParams();
+        //定义返回对象
+        ZLRpcResult zlRpcResult = null;
+        try {
+            //系统调用
+            zlRpcResult = apitShopService.saveOrUpdate(params);
+        } catch (Exception ex) {
+            //系统级别异常
+            throw new ServiceException(ServiceException.SYS_ERROR);
+        }
+        //判断返回结果
+        if (!zlRpcResult.success()) {
+            throw new ServiceException(zlRpcResult.getErrorMsg());
+        }
+        return ZLResult.Success(zlRpcResult.getData());
+    }
+
+    @RequestMapping("getUserInfo")
+    @ResponseBody
+    public ZLResult getUserInfo(){
+        //获取入参数据
+        Map<String, Object> params = getParams();
+        //定义返回对象
+        ZLRpcResult zlRpcResult = null;
+        try {
+            //系统调用
+            zlRpcResult = apitUserService.getUserInfo(params);
+        } catch (Exception ex) {
+            //系统级别异常
+            throw new ServiceException(ServiceException.SYS_ERROR);
+        }
+        //判断返回结果
+        if (!zlRpcResult.success()) {
+            throw new ServiceException(zlRpcResult.getErrorMsg());
+        }
+        return ZLResult.Success(zlRpcResult.getData());
+    }
+
+    @RequestMapping("updateUserInfo")
+    @ResponseBody
+    public ZLResult updateUserInfo(){
+        //获取入参数据
+        Map<String, Object> params = getParams();
+        //定义返回对象
+        ZLRpcResult zlRpcResult = null;
+        try {
+            //系统调用
+            zlRpcResult = apitUserService.updateUserInfo(params);
+        } catch (Exception ex) {
+            //系统级别异常
+            throw new ServiceException(ServiceException.SYS_ERROR);
+        }
+        //判断返回结果
+        if (!zlRpcResult.success()) {
+            throw new ServiceException(zlRpcResult.getErrorMsg());
+        }
+        return ZLResult.Success(zlRpcResult.getData());
+    }
+}

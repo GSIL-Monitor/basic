@@ -1,0 +1,172 @@
+package com.wgb.controller.lm;
+
+import com.wgb.bean.ZLResult;
+import com.wgb.cache.RedisFactory;
+import com.wgb.dubbo.ZLRpcResult;
+import com.wgb.exception.ServiceException;
+import com.wgb.service.CacheService;
+import com.wgb.service.dubbo.lms.web.ApitUserService;
+import com.wgb.service.dubbo.sms.web.ApiSmsService;
+import com.wgb.service.dubbo.urms.web.ApitPortalUserService;
+import com.wgb.service.dubbo.urms.web.ApitRegService;
+import com.wgb.util.CommonUtil;
+import com.wgb.util.Contants;
+import com.wgb.util.MD5Util;
+import com.wgb.util.Validator;
+import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
+/**
+ * By chmin
+ */
+@Controller
+@RequestMapping("/entry/lms")
+public class LMXCXLoginController extends LMXCXBaseController {
+
+    @Autowired
+    private ApitUserService apitUserService;
+    @Autowired
+    private CacheService cacheService;
+    @Autowired
+    private ApitRegService apitRegService;
+    @Autowired
+    private ApiSmsService apiSmsService;
+    @Autowired
+    private ApitPortalUserService apitPortalUserService;
+
+    /**
+     * 登录
+     */
+    @RequestMapping("login")
+    @ResponseBody
+    public ZLResult login(HttpServletRequest request){
+        HttpSession session = request.getSession();
+        String sessionId = session.getId();
+        String errorMsg = null;
+        Map<String, Object> userInfo = null;
+        userInfo = new HashMap<>();
+        Map<String, Object> params = getParams();
+
+        String password = MD5Util.GetMD5Code(MapUtils.getString(params, "password", ""));
+        if (StringUtils.isNotEmpty(password)){
+            params.put("password", password);
+        }
+
+        try {
+            ZLRpcResult zlRpcResult = apitUserService.checkUserInfo(params);
+            if (zlRpcResult.success()) {
+                userInfo = zlRpcResult.getMap();
+                String token = UUID.randomUUID().toString();
+                String userKey = "LM_" + token;
+                RedisFactory.getDefaultClient().setMapToJedis(userInfo, userKey);
+                if (MapUtils.isEmpty(userInfo)) {
+                    errorMsg = "手机号未激活或密码错误";
+                } else {
+                    userInfo.put("sessionId", sessionId);
+                    userInfo.put("access_code", token);
+                }
+            } else {
+                errorMsg = zlRpcResult.getErrorMsg();
+            }
+        } catch (ServiceException e) {
+            errorMsg = "系统异常！";
+        }
+
+        if (StringUtils.isNotEmpty(errorMsg)) {
+            return ZLResult.Error(errorMsg);
+        }
+        return ZLResult.Success(userInfo);
+    }
+
+    @RequestMapping("reg")
+    @ResponseBody
+    public ZLResult reg(){
+        Map<String, Object> params = getParams();
+        String account = MapUtils.getString(params, "account");
+        String yzm = MapUtils.getString(params, "yzm");
+        String password = MapUtils.getString(params, "password");
+        if (StringUtils.isEmpty(account) || StringUtils.isEmpty(yzm)) {
+            return ZLResult.Error("参数错误");
+        }
+        String _yzm;
+        if (Validator.isMobile(account)) {
+            _yzm = cacheService.getYzm(account, Contants.SMS_REG_TYPE);
+        } else if (Validator.isEmail(account)) {
+            _yzm = cacheService.getYzm(account, Contants.EMAIL_REG_TYPE);
+        } else {
+            return ZLResult.Error("账号格式错误");
+        }
+        if (!Validator.isPassword(password)) {
+            return ZLResult.Error("密码必须为6-18位数字、字母、符号");
+        }
+        if (StringUtils.isNotEmpty(_yzm) && yzm.equals(_yzm)) {
+            apitRegService.insertReg(params);
+            return ZLResult.Success();
+        }
+        if(StringUtils.isNotEmpty(_yzm)){
+            cacheService.setYzm(_yzm, account, Contants.SMS_REG_TYPE);
+        }
+        return ZLResult.Error("验证码已过期");
+    }
+
+    @RequestMapping("/sendYzm")
+    @ResponseBody
+    public ZLResult sendYzm(HttpServletRequest request) {
+        Map<String, Object> params = getParams();
+        ZLRpcResult zlRpcResult  = new ZLRpcResult();
+        String account = MapUtils.getString(params, "account");
+        if (StringUtils.isEmpty(account)) {
+            return ZLResult.Error("账号必须输入");
+        }
+        zlRpcResult = apitPortalUserService.checkAccount(params);
+        if (!zlRpcResult.success()) {
+            return ZLResult.Error(zlRpcResult.getErrorMsg());
+        }
+        if (Validator.isMobile(account)) {
+            //如果短信发送间隔不满1分钟，则提示：手机验证码发送过于频繁，请您稍后再试
+            String mobileLockKey = Contants.SMS_REG_TYPE + account + "_lock";
+            String lock = RedisFactory.getDefaultClient().get(mobileLockKey);
+            if (StringUtils.isNotEmpty(lock)) {
+                throw new ServiceException(ServiceException.CODE_100011);
+            }
+            //生成验证码，如果上一次的验证码未过期，则继续使用
+            String mobileKey = Contants.SMS_REG_TYPE + account;
+            String yzm = RedisFactory.getDefaultClient().get(mobileKey);
+            if (StringUtils.isEmpty(yzm)) {
+                //生成6位数字验证码
+                yzm = CommonUtil.createRandom(true, 6);
+            }
+            //保存短信验证码到缓存，短信5分钟有效，300秒
+            RedisFactory.getDefaultClient().set(mobileKey, yzm, 300);
+            //保存短信验证锁到缓存，1分钟内不能继续发送验证码，60秒
+            RedisFactory.getDefaultClient().set(mobileLockKey, yzm, 60);
+            //发短信
+            Map<String, Object> data = new HashMap<String, Object>();
+            data.put("code", yzm);
+            data.put("product", "中仑云平台");
+            apiSmsService.sendPlatformSms(account, "SMS_50605097", data);
+            return ZLResult.Success();
+        }
+        return ZLResult.Error("账号输入错误");
+    }
+
+    @RequestMapping("/sendLoginYzm")
+    @ResponseBody
+    public ZLResult sendLoginYzm() {
+        ZLRpcResult zlRpcResult = apitUserService.sendYzm(getParams());
+        if (!zlRpcResult.success()) {
+            return ZLResult.Error(zlRpcResult.getErrorMsg());
+        }
+        return ZLResult.Success();
+    }
+}

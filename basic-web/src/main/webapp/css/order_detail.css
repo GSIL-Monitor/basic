@@ -1,0 +1,136 @@
+	i.mui-media-object {
+	    font-size: 30px;
+	}
+	
+	.hotel-right {
+	    position: absolute;
+	    right: 0px;
+	}
+	
+	.hotel-right-padded {
+	    position: absolute;
+	    right: 20px;
+	}
+	
+	.hotel-right-text {
+	    position: absolute;
+	    font-size: 14px;
+	    height: 16px;
+	    line-height: 16px;
+	    right: 40px;
+	    top: 50%;
+	    margin-top: -8px;
+	}
+	
+	.hotel-bar-order-info {
+	    position: relative;
+	    padding: 10px;
+	}
+	
+	.hotel-tips {
+	    margin: 10px;
+	    font-size: 10px;
+	    background-color: #fff;
+	    padding: 8px;
+	    border-radius: 3px;
+	}
+	
+	.hotel-order-action {
+	    margin: 0px;
+	    padding: 0px 10px;
+	    position: relative;
+	    text-align: center;
+	    color: #666;
+	    height: 45px;
+	    font-size: 0px;
+	}
+	
+	.hotel-order-action li {
+	    background-color: #fff;
+	    border: solid 1px #c8c7cc;
+	    border-left: none;
+	    display: inline-block;
+	    padding: 10px 7px;
+	    margin: 0px;
+	    width: 33.3%;
+	    font-size: 11px;
+	    text-align: center;
+	    overflow: hidden;
+	    white-space: nowrap;
+	    text-overflow: ellipsis;
+	}
+	
+	.hotel-order-action li:first-child {
+	    border-left: solid 1px #c8c7cc;
+	}
+	
+	.hotel-order-action li:active {
+	    border: solid 1px #099fde;
+	    color: #099fde;
+	}
+	
+	.mui-table-view {
+	    margin-bottom: 15px;
+	}
+	
+	.hotel-costomer-btn {
+	    margin-bottom: 20px;
+	    padding: 10px;
+	    font-size: 14px;
+	}
+	
+	
+.place_block {
+    width: 100%;
+    height: 100px;
+}
+
+.hotel-color-orange {
+    color: #ff9a14 !important;
+}
+
+.pay_success_block{
+    width: 100%;
+    height: 60px;
+    padding: 10px 0;
+    text-align: center;
+    background-color: white;
+}
+.pay_success_block i{
+    width: 40px;
+    height: 40px;
+    float: left;
+    background-image: url(../images/paysuccess.png);
+    background-repeat: no-repeat;
+    background-size: cover;
+    margin-left: calc(50% - 62px);
+}
+.pay_success_block span{
+    color:rgb(9, 187, 7);
+    float: left;
+        font-size: 16px;
+    margin-left: 10px;
+    line-height: 40px;
+}
+.pay_detail_blcok{
+    width: 100%;
+    height: auto;
+    padding: 10px
+}
+
+.order_detail_opration{
+	width: 100%;
+	height: 48px;
+	position: fixed;
+	left: 0;
+	bottom: 0;
+	    background: white;
+	    border-top: 0.5px solid lightgray;
+	    padding-top: 4px;
+	    padding-bottom: 4px;
+}
+
+.order_detail_opration a{
+	margin: 2px 0px 0 12px;
+	float: left;
+}

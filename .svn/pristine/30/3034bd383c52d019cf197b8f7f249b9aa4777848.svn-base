@@ -1,0 +1,211 @@
+package com.wgb.controller.mt.sales;
+
+import com.alibaba.fastjson.JSON;
+import com.wgb.bean.ZLResult;
+import com.wgb.controller.mt.MTBaseController;
+import com.wgb.dubbo.ZLRpcResult;
+import com.wgb.exception.ServiceException;
+import com.wgb.service.dubbo.dcms.web.ApitSaleRecordService;
+import com.wgb.service.dubbo.stms.web.ApitPurchaseReportFormsService;
+import com.wgb.util.excel.constant.ExcelTitles;
+import com.wgb.util.excel.model.ExcelColumn;
+import com.wgb.util.excel.util.CustomizeToExcel;
+import org.apache.commons.lang.time.DateFormatUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Created by 87357 on 2018/8/27.
+ */
+@Controller
+@RequestMapping("/sale/reportforms")
+public class MTSalesReportFormsController extends MTBaseController {
+
+    @Autowired
+    private ApitSaleRecordService apitSaleRecordService;
+
+
+    /**
+     * 收银流水报表展示页面
+     * @param request
+     * @return
+     */
+    @RequestMapping("/queryManageDatailForReport")
+    @ResponseBody
+    public ZLResult queryManageDatailForReport(HttpServletRequest request) {
+        //获取入参数据
+        Map<String, Object> params =  getParams();
+        ZLRpcResult zlRpcResult  = new ZLRpcResult();
+        handleIsheadCope(params);
+        try {
+            // 系统调用
+            zlRpcResult = apitSaleRecordService.queryManageDatailForReport(params);
+        } catch (Exception ex){
+            // 系统级别异常
+            throw new ServiceException("API销售报表-收银流水统计查询系统调用处理异常，输入参数 =" + params);
+        }
+        // 判断返回结果
+        if (!zlRpcResult.success()) {
+            throw new ServiceException(zlRpcResult.getErrorMsg());
+        }
+        return ZLResult.Success(zlRpcResult.getData());
+    }
+
+    /**
+     * 销售报表-收银流水导出
+     * @param request
+     * @return
+     */
+    @RequestMapping("/exportManageDatailForReport")
+    @ResponseBody
+    public ZLResult exportManageDatailForReport(HttpServletRequest request, HttpServletResponse response) {
+        // 获取入参数据
+        Map<String, Object> params =  getParams();
+        // 定义返回对象
+        ZLRpcResult zlRpcResult  = new ZLRpcResult();
+        try {
+            // 系统调用
+           zlRpcResult = apitSaleRecordService.exportManageDatailForRepor(params);
+            List<ExcelColumn> salesManageDatailCollectTitle = ExcelTitles.getSalesManageDatailCollectTitle();
+            ExcelColumn excelColumn = salesManageDatailCollectTitle.get(0);
+            excelColumn.setTitle(  excelColumn.getTitle());
+            String saleName = "销售报表_收银流水_" +  DateFormatUtils.format(new Date(), "yyyy-MM-dd");
+            CustomizeToExcel.exportExcel(response ,salesManageDatailCollectTitle ,zlRpcResult.getList() ,saleName);
+        } catch (Exception ex){
+            // 系统级别异常
+            throw new ServiceException("API销售报表-收银流水导出系统调用处理异常，输入参数 =" + params);
+        }
+        // 判断返回结果
+        if (!zlRpcResult.success()) {
+            throw new ServiceException(zlRpcResult.getErrorMsg());
+        }
+        return ZLResult.Success();
+    }
+
+    /**
+     * 零售统计报表展示页面
+     * @param request
+     * @return
+     */
+    @RequestMapping("/queryRetailStatisticsForReport")
+    @ResponseBody
+    public ZLResult queryRetailStatisticsForReport(HttpServletRequest request) {
+        // 获取入参数据
+        Map<String, Object> params =  getParams();
+        // 定义返回对象
+        ZLRpcResult zlRpcResult  = new ZLRpcResult();
+        try {
+            // 系统调用
+            zlRpcResult = apitSaleRecordService.queryRetailStatisticsForReport(params);
+        } catch (Exception ex){
+            // 系统级别异常
+            throw new ServiceException("API销售报表-零售统计/查询系统调用处理异常，输入参数 =" + params);
+        }
+        // 判断返回结果
+        if (!zlRpcResult.success()) {
+            throw new ServiceException(zlRpcResult.getErrorMsg());
+        }
+        return ZLResult.Success(zlRpcResult.getData());
+    }
+
+    /**
+     * 销售报表-零售统计导出
+     * @param request
+     * @return
+     */
+    @RequestMapping("/exportRetailStatisticsForReport")
+    @ResponseBody
+    public ZLResult exportRetailStatisticsForReport(HttpServletRequest request, HttpServletResponse response) {
+        // 获取入参数据
+        Map<String, Object> params =  getParams();
+        // 定义返回对象
+        ZLRpcResult zlRpcResult  = new ZLRpcResult();
+        try {
+            // 系统调用
+            zlRpcResult = apitSaleRecordService.exportRetailStatisticsForReport(params);
+            List<ExcelColumn> salesRetailStatisticsCollectTitle = ExcelTitles.getSalesRetailStatisticsCollectTitle();
+            System.out.println("查询结果 零售统计：" + JSON.toJSONString(zlRpcResult.getData()));
+            ExcelColumn excelColumn = salesRetailStatisticsCollectTitle.get(0);
+            excelColumn.setTitle( excelColumn.getTitle()  );
+            String saleName = "销售报表_零售统计_" + DateFormatUtils.format(new Date(), "yyyy-MM-dd");
+            CustomizeToExcel.exportExcel(response ,salesRetailStatisticsCollectTitle ,zlRpcResult.getList() ,saleName);
+        } catch (Exception ex){
+            // 系统级别异常
+            throw new ServiceException("API销售报表--零售统导出系统调用处理异常，输入参数 =" + params);
+        }
+        // 判断返回结果
+        if (!zlRpcResult.success()) {
+            throw new ServiceException(zlRpcResult.getErrorMsg());
+        }
+        return ZLResult.Success();
+    }
+    /**
+     * 门店统计报表展示页面
+     * @param request
+     * @return
+     */
+    @RequestMapping("/queryStoresSumForReport")
+    @ResponseBody
+    public ZLResult queryStoresSumForReport(HttpServletRequest request) {
+        // 获取入参数据
+        Map<String, Object> params =  getParams();
+        // 定义返回对象
+        ZLRpcResult zlRpcResult  = new ZLRpcResult();
+        try {
+            // 系统调用
+            zlRpcResult = apitSaleRecordService.queryStoresSumForReport(params);
+        } catch (Exception ex){
+            // 系统级别异常
+            throw new ServiceException("API销售报表-门店统计/查询系统调用处理异常，输入参数 =" + params);
+        }
+        // 判断返回结果
+        if (!zlRpcResult.success()) {
+            throw new ServiceException(zlRpcResult.getErrorMsg());
+        }
+        return ZLResult.Success(zlRpcResult.getData());
+    }
+
+    /**
+     * 销售报表-门店统计导出
+     * @param request
+     * @return
+     */
+    @RequestMapping("/exportStoresSumForReport")
+    @ResponseBody
+    public ZLResult exportStoresSumForReport(HttpServletRequest request, HttpServletResponse response) {
+        // 获取入参数据
+        Map<String, Object> params =  getParams();
+        // 定义返回对象
+        ZLRpcResult zlRpcResult  = new ZLRpcResult();
+        try {
+            long startTime =System.currentTimeMillis();
+            // 系统调用
+            zlRpcResult = apitSaleRecordService.exportStoresSumForReport(params);
+            long endTime =System.currentTimeMillis();
+            System.out.println("查询数据用时：" + (endTime -startTime));
+            System.out.println("查询结果：" + JSON.toJSONString(zlRpcResult.getData()));
+            List<ExcelColumn> salesStoresSumCollectTitle = ExcelTitles.getSalesStoresSumCollectTitle();
+            ExcelColumn excelColumn = salesStoresSumCollectTitle.get(0);
+            excelColumn.setTitle( excelColumn.getTitle());
+            String saleName = "销售报表_门店统计_" + DateFormatUtils.format(new Date(), "yyyy-MM-dd");
+            CustomizeToExcel.exportExcel(response ,salesStoresSumCollectTitle ,zlRpcResult.getList() ,saleName);
+
+        } catch (Exception ex){
+            // 系统级别异常
+            throw new ServiceException("API销售报表-门店统计导出系统调用处理异常，输入参数 =" + params);
+        }
+        // 判断返回结果
+        if (!zlRpcResult.success()) {
+            throw new ServiceException(zlRpcResult.getErrorMsg());
+        }
+        return ZLResult.Success();
+    }
+}

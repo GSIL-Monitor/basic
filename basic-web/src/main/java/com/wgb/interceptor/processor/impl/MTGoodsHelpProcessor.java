@@ -1,0 +1,134 @@
+package com.wgb.interceptor.processor.impl;
+
+import com.wgb.exception.ServiceException;
+import com.wgb.interceptor.processor.AdapterProcessor;
+import com.wgb.service.LoginInfoService;
+import com.wgb.util.Contants;
+import com.wgb.util.HttpRequestConstant;
+import com.wgb.util.HttpRequestUtil;
+import com.wgb.util.ParamsUtil;
+import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.util.Map;
+
+/**
+ * Created by qiuxh on 2018/9/11 0011.
+ */
+public class MTGoodsHelpProcessor extends AdapterProcessor {
+
+    /**
+     * 登录Session超期时间 ，24小时
+     */
+    private static final int SESSION_TIME_SECONDS = 60 * 60 * 24;
+
+    @Autowired
+    private LoginInfoService loginInfoService;
+
+    /**
+     * @param request
+     * @param response
+     * @return
+     * @throws Exception
+     */
+    @Override
+    public boolean process(HttpServletRequest request, HttpServletResponse response) throws Exception {
+
+        //token必须提供
+        String token = request.getParameter("access_code");
+
+        if (StringUtils.isEmpty(token)) {
+            throw new ServiceException(ServiceException.CODE_10001);
+        }
+
+        //account
+        String account = loginInfoService.getAccountByToken(HttpRequestConstant.MT_GOODS_HELP_ACCOUNT_PREFIX +token, SESSION_TIME_SECONDS);
+        if (StringUtils.isEmpty(account)) {
+            throw new ServiceException(ServiceException.CODE_10002);
+        }
+
+        //判断account是否正确
+        Map<String, Object> user = loginInfoService.getRemoteUserInfo(account);
+        if (MapUtils.isEmpty(user)) {
+            throw new ServiceException(ServiceException.OPER_ERROR);
+        }
+
+        HttpRequestUtil.setParams(request, getParams(request, user));
+        return true;
+    }
+
+    /**
+     * @param request
+     * @return
+     */
+    public static Map<String, Object> getParams(HttpServletRequest request, Map<String, Object> userInfo) {
+
+        //获取请求参数
+        Map<String, Object> requestParams = ParamsUtil.getDefaultParams(request);
+
+        //登陆者的ID
+        requestParams.put(Contants.LOGIN_USER_ID, MapUtils.getString(userInfo, "id"));
+
+        //登陆者的全称
+        requestParams.put(Contants.LOGIN_USER_FULL_NAME, MapUtils.getString(userInfo, "fullname"));
+
+        //登陆者所属商户的编码
+        requestParams.put(Contants.LOGIN_USER_SHOP_CODE, MapUtils.getString(userInfo, "shopcode"));
+
+        //登陆者所属的门店编码
+        requestParams.put(Contants.LOGIN_USER_BRANCH_ID, MapUtils.getString(userInfo, "branchcode"));
+
+        //登陆者商务编码
+        requestParams.put(Contants.LOGIN_USER_BUSINESS_CODE, MapUtils.getString(userInfo, "businesscode"));
+
+        //登陆者的门店名称
+        requestParams.put(Contants.LOGIN_USER_BRANCH_NAME, MapUtils.getString(userInfo, "branchname"));
+
+        //登陆者是否属于总店
+        requestParams.put(Contants.LOGIN_USER_BRANCH_ISHEAD, MapUtils.getString(userInfo, "ishead"));
+
+        //登陆者的商户联系方式
+        requestParams.put(Contants.LOGIN_USER_SHOP_TEL, MapUtils.getString(userInfo, "tel"));
+
+        //登陆者门店的配送类型
+        requestParams.put(Contants.LOGIN_USER_DEFAULT_DISTPRICETYPE, MapUtils.getString(userInfo, "defaultdistpricetype"));
+
+        //登陆者所属门店的会员模式
+        requestParams.put(Contants.LOGIN_USER_MEMBERMODEL, MapUtils.getString(userInfo, "membermodel"));
+
+        //登陆者用户名称
+        requestParams.put(Contants.LOGIN_USER_NAME, MapUtils.getString(userInfo, "username"));
+
+        //登陆者的账号
+        requestParams.put(Contants.LOGIN_USER_ACCOUNT, MapUtils.getString(userInfo, "account"));
+
+        //登陆者所属门店默认的配送地编码
+        requestParams.put(Contants.LOGIN_USER_DEFAULT_DISTCENTERCODE, MapUtils.getString(userInfo, "defaultdistcentercode"));
+
+        //登陆者所属门店参考门店价钱
+        requestParams.put(Contants.LOGIN_USER_REFER_PRICE_BRANCHCODE, MapUtils.getString(userInfo, "referpricebranchcode"));
+
+        //登陆者美团是否映射
+        requestParams.put(Contants.LOGIN_USER_IS_MEITUAN_MAPPING, MapUtils.getString(userInfo, "ismeituanmapping"));
+
+        //登陆者所属门店的支付方式
+        requestParams.put(Contants.LOGIN_USER_IS_BRANCH_PAY, MapUtils.getString(userInfo, "isbranchpay"));
+
+        //登陆者的商户名称
+        requestParams.put(Contants.LOGIN_USER_SHOP_NAME, MapUtils.getString(userInfo, "shopname"));
+
+        //登陆者的商户名称
+        requestParams.put(Contants.LOGIN_USER_SHOP_SOFTWARETYPE, MapUtils.getString(userInfo, "softwaretype"));
+
+        //登陆者所属商户所属行业编码
+        requestParams.put(Contants.INDUSTRYID, MapUtils.getString(userInfo, "industryid"));
+
+        //登陆者所属商户所属行业名称
+        requestParams.put(Contants.INDUSTRYNAME, MapUtils.getString(userInfo, "industryname"));
+
+        return requestParams;
+    }
+}

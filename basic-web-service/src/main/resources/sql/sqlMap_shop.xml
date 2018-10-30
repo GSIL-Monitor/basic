@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<sqlMap namespace="shardName.com.wgb.service.impl.ShopServiceImpl" jdbcTimeout="5">
+
+    <sql id="getShopInfo">
+        <![CDATA[
+		    select * from pub_shop where shopcode = :shopcode
+    	]]>
+    </sql>
+
+</sqlMap>

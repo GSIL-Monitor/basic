@@ -1,0 +1,832 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:dubbo="http://code.alibabatech.com/schema/dubbo"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://code.alibabatech.com/schema/dubbo http://code.alibabatech.com/schema/dubbo/dubbo.xsd">
+
+    <!-- dubbo非生产环境去掉启动依赖校验 -->
+    <dubbo:consumer check="false"/>
+
+    <!-- 统一服务接口 -->
+    <dubbo:reference id="portalBasicService" interface="com.wgb.service.dubbo.basic.web.PortalBasicService" retries="0"
+                     lazy="true"/>
+
+    <!-- 提供品牌服务-->
+    <dubbo:reference id="apitBrandService" interface="com.wgb.service.dubbo.dcms.web.ApitBrandService" retries="0"
+                     lazy="true"/>
+    <!-- 商品订单系统提供品牌服务-->
+    <dubbo:reference id="ApitMeiTuanService" interface="com.wgb.service.dubbo.osrms.web.ApitMeiTuanService" retries="0"
+                     lazy="true"/>
+    <dubbo:reference id="ApitAliPayService" interface="com.wgb.service.dubbo.pays.web.ApitAliPayService" retries="0"
+                     lazy="true"/>
+    <!-- 提供分类服务-->
+    <dubbo:reference id="apitCategoryService" interface="com.wgb.service.dubbo.dcms.web.ApitCategoryService" retries="0"
+                     lazy="true"/>
+    <!-- 提供一品多码服务-->
+    <dubbo:reference id="apitCommodityBarcodesService"
+                     interface="com.wgb.service.dubbo.dcms.web.ApitCommodityBarcodesService" retries="0" lazy="true"/>
+    <!-- 提供商品服务-->
+    <dubbo:reference id="apitCommodityService" interface="com.wgb.service.dubbo.dcms.web.ApitCommodityService"
+                     retries="0" lazy="true"/>
+
+    <!-- 提供商品库服务-->
+    <dubbo:reference id="apitCommodityLibraryService"
+                     interface="com.wgb.service.dubbo.dcms.web.ApitCommodityLibraryService" retries="0" lazy="true"/>
+
+    <!-- 组合拆分服务-->
+    <dubbo:reference id="apitCommodityZuheCaifenService"
+                     interface="com.wgb.service.dubbo.dcms.web.ApitCommodityZuheCaifenService" retries="0" lazy="true"/>
+
+    <!-- 商品单位服务-->
+    <dubbo:reference id="apitUnitService" interface="com.wgb.service.dubbo.dcms.web.ApitUnitService" retries="0"
+                     lazy="true"/>
+
+    <!-- 首页服务-->
+    <dubbo:reference id="apitHomeService" interface="com.wgb.service.dubbo.dcms.web.ApitHomeService" retries="0"
+                     lazy="true"/>
+
+    <!-- 导购员服务-->
+    <dubbo:reference id="apitAssistantService" application=""
+                     interface="com.wgb.service.dubbo.dcms.web.ApitAssistantService" retries="0" lazy="true"/>
+
+    <!-- 调价服务-->
+    <dubbo:reference id="apitCommodityPriceService" interface="com.wgb.service.dubbo.dcms.web.ApitCommodityPriceService"
+                     retries="0" lazy="true"/>
+
+    <!-- 收银端初始化加载dcms商品数据-->
+    <dubbo:reference id="apiLoadingDataServiceFromDCMS"
+                     interface="com.wgb.service.dubbo.dcms.admin.ApiLoadingDataService" retries="0" lazy="true"/>
+
+    <!-- 收银端初始化加载stms供应商数据-->
+    <dubbo:reference id="apiLoadingDataServiceFromSTMS"
+                     interface="com.wgb.service.dubbo.stms.admin.ApiLoadingDataService" retries="0" lazy="true"/>
+
+    <!-- 收银端初始化加载mbms会员等级数据-->
+    <dubbo:reference id="apiLoadingDataServiceFromMBMS"
+                     interface="com.wgb.service.dubbo.mbms.admin.ApiLoadingDataService" retries="0" lazy="true"/>
+
+    <!-- 收银端初始化加载urms用户权限小票数据-->
+    <dubbo:reference id="apiLoadingDataServiceFromURMS"
+                     interface="com.wgb.service.dubbo.urms.admin.ApiLoadingDataService" retries="0" lazy="true"/>
+
+    <!-- 收银端初始化加载pays支付类型数据-->
+    <dubbo:reference id="apiLoadingDataServiceFromPAYS"
+                     interface="com.wgb.service.dubbo.pays.admin.ApiLoadingDataService" retries="0" lazy="true"/>
+
+    <!-- 短信使用明细-->
+    <dubbo:reference id="apitSmsDetailService" interface="com.wgb.service.dubbo.sms.web.ApitSmsDetailService"
+                     retries="0" lazy="true"/>
+
+    <!-- 短信充值订单-->
+    <dubbo:reference id="apitRechargeService" interface="com.wgb.service.dubbo.sms.web.ApitRechargeService" retries="0"
+                     lazy="true"/>
+
+
+    <!-- 广告服务-->
+    <dubbo:reference id="apitPortalActService" interface="com.wgb.service.dubbo.acts.web.ApitPortalActService"
+                     retries="0" lazy="true"/>
+
+    <!-- 广告服务-->
+    <dubbo:reference id="apitPortalActPlayrecordService"
+                     interface="com.wgb.service.dubbo.acts.web.ApitPortalActPlayrecordService" retries="0" lazy="true"/>
+
+
+    <!-- 问题反馈-->
+    <dubbo:reference id="apitFeedBackService" interface="com.wgb.service.dubbo.urms.web.ApitFeedBackService" retries="0"
+                     lazy="true"/>
+
+    <!-- 设备管理-->
+    <dubbo:reference id="apitDeviceService" interface="com.wgb.service.dubbo.urms.web.ApitDeviceService" retries="0"
+                     lazy="true"/>
+
+    <!-- 门店区域-->
+    <dubbo:reference id="apitBranchRegionService" interface="com.wgb.service.dubbo.urms.web.ApitBranchRegionService"
+                     retries="0" lazy="true"/>
+
+    <!-- 零售统计-->
+    <dubbo:reference id="apitSaleRecordService" interface="com.wgb.service.dubbo.dcms.web.ApitSaleRecordService"
+                     retries="0" lazy="true"/>
+
+    <!-- 收银流水-->
+    <dubbo:reference id="apitPriceRecordService" interface="com.wgb.service.dubbo.dcms.web.ApitPriceRecordService"
+                     retries="0" lazy="true"/>
+
+    <!-- 门店信息-->
+    <dubbo:reference id="apitBranchService" interface="com.wgb.service.dubbo.urms.web.ApitBranchService" retries="0"
+                     lazy="true"/>
+
+    <!-- 角色信息-->
+    <dubbo:reference id="apitPortalRoleService" interface="com.wgb.service.dubbo.urms.web.ApitPortalRoleService"
+                     retries="0" lazy="true"/>
+
+    <!-- 用户信息-->
+    <dubbo:reference id="apitPortalUserService" interface="com.wgb.service.dubbo.urms.web.ApitPortalUserService"
+                     retries="0" lazy="true"/>
+
+    <!-- 续费信息-->
+    <dubbo:reference id="apitRechargeOrderService" interface="com.wgb.service.dubbo.urms.web.ApitRechargeOrderService"
+                     retries="0" lazy="true"/>
+
+    <!-- 广告投放信息-->
+    <dubbo:reference id="apitPortalDeviceActgroupService"
+                     interface="com.wgb.service.dubbo.acts.web.ApitPortalDeviceActgroupService" retries="0"
+                     lazy="true"/>
+
+    <!-- 广告期刊信息-->
+    <dubbo:reference id="apitPortalActGroupService" interface="com.wgb.service.dubbo.acts.web.ApitPortalActGroupService"
+                     retries="0" lazy="true"/>
+
+    <!-- 广告设备实时监控信息-->
+    <dubbo:reference id="apitPortalDeviceService" interface="com.wgb.service.dubbo.acts.web.ApitPortalDeviceService"
+                     retries="0" lazy="true"/>
+
+    <!-- 批发订单接口-->
+    <dubbo:reference id="apitBatchOrderService" interface="com.wgb.service.dubbo.stms.web.ApitBatchOrderService"
+                     retries="0" lazy="true"/>
+
+    <!-- 批发销售接口-->
+    <dubbo:reference id="apitBatchReceiptService" interface="com.wgb.service.dubbo.stms.web.ApitBatchReceiptService"
+                     retries="0" lazy="true"/>
+
+    <!-- 批发退货单接口-->
+    <dubbo:reference id="apitBatchReturnService" interface="com.wgb.service.dubbo.stms.web.ApitBatchReturnService"
+                     retries="0" lazy="true"/>
+
+    <!-- 采购订单接口-->
+    <dubbo:reference id="apitPurchaseOrderService" interface="com.wgb.service.dubbo.stms.web.ApitPurchaseOrderService"
+                     retries="0" lazy="true"/>
+
+    <!-- 采购收货单接口-->
+    <dubbo:reference id="apitPurchaseReceiptService"
+                     interface="com.wgb.service.dubbo.stms.web.ApitPurchaseReceiptService" retries="0" lazy="true"/>
+
+    <!-- 采购退货单接口-->
+    <dubbo:reference id="apitPurchaseReturnService" interface="com.wgb.service.dubbo.stms.web.ApitPurchaseReturnService"
+                     retries="0" lazy="true"/>
+
+    <!-- 网上订单-采购订单接口-->
+    <dubbo:reference id="apitPurchaseOrderOnlineService"
+                     interface="com.wgb.service.dubbo.stms.web.ApitPurchaseOrderOnlineService"
+                     retries="0" lazy="true"/>
+
+    <!-- 网上订单-采购收货单接口-->
+    <dubbo:reference id="apitPurchaseReceiptOnlineService"
+                     interface="com.wgb.service.dubbo.stms.web.ApitPurchaseReceiptOnlineService" retries="0"
+                     lazy="true"/>
+
+    <!-- 网上订单-采购退货单接口-->
+    <dubbo:reference id="apitPurchaseReturnOnlineService"
+                     interface="com.wgb.service.dubbo.stms.web.ApitPurchaseReturnOnlineService"
+                     retries="0" lazy="true"/>
+
+    <!-- 网上订单-商户后台和SCP商品匹配-->
+    <dubbo:reference id="apitPurchaseGoodsMatchService"
+                     interface="com.wgb.service.dubbo.stms.web.ApitPurchaseGoodsMatchService"
+                     retries="0" lazy="true"/>
+
+    <!-- 供应商接口-->
+    <dubbo:reference id="apitPurchaseSupplierService"
+                     interface="com.wgb.service.dubbo.stms.web.ApitPurchaseSupplierService" retries="0" lazy="true"/>
+
+    <!-- 供应商区域接口-->
+    <dubbo:reference id="apitPurchaseSupplierRegionService"
+                     interface="com.wgb.service.dubbo.stms.web.ApitPurchaseSupplierRegionService" retries="0"
+                     lazy="true"/>
+
+    <!-- 公共接口-->
+    <dubbo:reference id="ApitStmsCommonService" interface="com.wgb.service.dubbo.stms.web.ApitStmsCommonService"
+                     retries="0" lazy="true"/>
+
+    <!--客户档案-->
+    <dubbo:reference id="apitCustomerService" interface="com.wgb.service.dubbo.stms.web.ApitCustomerService" retries="0"
+                     lazy="true"/>
+    <!--客户区域-->
+    <dubbo:reference id="apitCustomerRegionService" interface="com.wgb.service.dubbo.stms.web.ApitCustomerRegionService"
+                     retries="0" lazy="true"/>
+    <!--采购汇总-->
+    <dubbo:reference id="apitPurchaseLogsService" interface="com.wgb.service.dubbo.stms.web.ApitPurchaseLogsService"
+                     retries="0" lazy="true"/>
+    <!--采购报表-->
+    <dubbo:reference id="apitPurchaseReportFormsService"
+                     interface="com.wgb.service.dubbo.stms.web.ApitPurchaseReportFormsService"
+                     retries="0" lazy="true"/>
+    <!--盘点单-->
+    <dubbo:reference id="apitStorageCheckService" interface="com.wgb.service.dubbo.stms.web.ApitStorageCheckService"
+                     retries="0" lazy="true"/>
+    <!--报损单-->
+    <dubbo:reference id="apitStorageLossService" interface="com.wgb.service.dubbo.stms.web.ApitStorageLossService"
+                     retries="0" lazy="true"/>
+    <!--组合商品-->
+    <dubbo:reference id="apitStorageCombCommodityService"
+                     interface="com.wgb.service.dubbo.stms.web.ApitStorageCombCommodityService" retries="0"
+                     lazy="true"/>
+    <!--库存统计-->
+    <dubbo:reference id="apitStorageReportService" interface="com.wgb.service.dubbo.stms.web.ApitStorageReportService"
+                     retries="0" lazy="true"/>
+    <!--批发统计-->
+    <dubbo:reference id="apitWholesaleService" interface="com.wgb.service.dubbo.stms.web.ApitWholesaleService"
+                     retries="0" lazy="true"/>
+    <!--订单商品-->
+    <dubbo:reference id="apitOrderCommoditySearchService"
+                     interface="com.wgb.service.dubbo.stms.web.ApitOrderCommoditySearchService" retries="0"
+                     lazy="true"/>
+    <!-- 促销系统提供优惠劵-->
+    <dubbo:reference id="apitCouponService" interface="com.wgb.service.dubbo.salems.web.ApitCouponService" retries="0"
+                     lazy="true"/>
+
+    <!-- 促销系统提供促销方案-->
+    <dubbo:reference id="apitPromotionService" interface="com.wgb.service.dubbo.salems.web.ApitPromotionService"
+                     retries="0" lazy="true"/>
+
+    <!-- 促销系统提供预付卡-->
+    <dubbo:reference id="apitPrepaidCardService" interface="com.wgb.service.dubbo.salems.web.ApitPrepaidCardService"
+                     retries="0" lazy="true"/>
+
+    <!-- 促销系统提供充值规则-->
+    <dubbo:reference id="apitRechargeRuleService" interface="com.wgb.service.dubbo.salems.web.ApitRechargeRuleService"
+                     retries="0" lazy="true"/>
+
+    <!--会员配置-->
+    <dubbo:reference id="apitDeviceGrantService" interface="com.wgb.service.dubbo.urms.web.ApitDeviceGrantService"
+                     retries="0" lazy="true"/>
+
+    <dubbo:reference id="apitShopConfigService" interface="com.wgb.service.dubbo.mbms.web.ApitShopConfigService"
+                     retries="0" lazy="true"/>
+
+    <dubbo:reference id="apitShopConfigServiceURMS" interface="com.wgb.service.dubbo.urms.web.ApitShopConfigService"
+                     retries="0" lazy="true"/>
+
+    <dubbo:reference id="apitShopService" interface="com.wgb.service.dubbo.urms.web.ApitShopService" retries="0"
+                     lazy="true"/>
+
+    <dubbo:reference id="apitSystemService" interface="com.wgb.service.dubbo.urms.web.ApitSystemService" retries="0"
+                     lazy="true"/>
+
+    <dubbo:reference id="apitUserGrantService" interface="com.wgb.service.dubbo.urms.web.ApitUserGrantService"
+                     retries="0" lazy="true"/>
+    <!--会员等级-->
+    <dubbo:reference id="apitMemberLevelService" interface="com.wgb.service.dubbo.mbms.web.ApitMemberLevelService"
+                     retries="0" lazy="true"/>
+    <!--会员等级授权-->
+    <dubbo:reference id="apitMemberLevelGrantService"
+                     interface="com.wgb.service.dubbo.mbms.web.ApitMemberLevelGrantService" retries="0" lazy="true"/>
+    <!--会员档案-->
+    <dubbo:reference id="apitMemberService" interface="com.wgb.service.dubbo.mbms.web.ApitMemberService" retries="0"
+                     lazy="true"/>
+    <!--会员礼品-->
+    <dubbo:reference id="apitGiftService" interface="com.wgb.service.dubbo.mbms.web.ApitGiftService" retries="0"
+                     lazy="true"/>
+    <!--会员记录-->
+    <dubbo:reference id="apitMemberReportService" interface="com.wgb.service.dubbo.mbms.web.ApitMemberReportService"
+                     retries="0" lazy="true"/>
+    <!--次卡管理-->
+    <dubbo:reference id="apitCountCardService" interface="com.wgb.service.dubbo.mbms.web.ApitCountcardService"
+                     retries="0" lazy="true"/>
+    <!--会员分析-->
+    <dubbo:reference id="apitMemberAnalyzeService" interface="com.wgb.service.dubbo.mbms.web.ApitMemberAnalyzeService"
+                     retries="0" lazy="true"/>
+
+    <!-- 支付方式查询-->
+    <dubbo:reference id="apitPayTypeService" interface="com.wgb.service.dubbo.pays.web.ApitPayTypeService" retries="0"
+                     lazy="true"/>
+
+    <!--微信支付  -->
+    <dubbo:reference id="ApitWxPayService" interface="com.wgb.service.dubbo.pays.web.ApitWxPayService" retries="0"
+                     lazy="true"/>
+
+    <!--微信系统订单接口调用  -->
+    <dubbo:reference id="apiOrderService" interface="com.wgb.service.dubbo.wxms.admin.ApiOrderService" retries="0"
+                     lazy="true"/>
+
+    <!-- 微信分类接口 -->
+    <dubbo:reference interface="com.wgb.service.dubbo.wxms.web.ApitWxCategoryService" id="apitWxCategoryService"
+                     retries="0" lazy="true"/>
+
+    <!-- 微信商品接口 -->
+    <dubbo:reference interface="com.wgb.service.dubbo.wxms.web.ApitWxCommodityService" id="apitWxCommodityService"
+                     retries="0" lazy="true"/>
+
+    <!-- 微信首页分类接口 -->
+    <dubbo:reference interface="com.wgb.service.dubbo.wxms.web.ApitWxHomeCategoryService" id="apitWxHomeCategoryService"
+                     retries="0" lazy="true"/>
+
+    <!-- 微信首页公告接口 -->
+    <dubbo:reference interface="com.wgb.service.dubbo.wxms.web.ApitWxHomeNoticeService" id="apitWxHomeNoticeService"
+                     retries="0" lazy="true"/>
+
+    <!-- 微信首页轮播接口 -->
+    <dubbo:reference interface="com.wgb.service.dubbo.wxms.web.ApitWxHomePlayService" id="apitWxHomePlayService"
+                     retries="0" lazy="true"/>
+
+    <!-- 微信订单接口 -->
+    <dubbo:reference interface="com.wgb.service.dubbo.wxms.web.ApitWxSaleOrderService" id="apitWxSaleOrderService"
+                     retries="0" lazy="true"/>
+
+    <!-- 微信会员接口 -->
+    <dubbo:reference interface="com.wgb.service.dubbo.wxms.web.ApitWxShopMemberService" id="apitWxShopMemberService"
+                     retries="0" lazy="true"/>
+
+    <!-- 微信商店设置接口 -->
+    <dubbo:reference interface="com.wgb.service.dubbo.wxms.web.ApitWxShopService" id="apitWxShopService" retries="0"
+                     lazy="true"/>
+
+    <!-- 微商城活动-拼团 -->
+    <dubbo:reference interface="com.wgb.service.dubbo.wxms.web.ApitWxCollageService" id="pitWxCollageService"/>
+
+    <!-- 微商城活动-砍价 -->
+    <dubbo:reference interface="com.wgb.service.dubbo.wxms.web.ApitWxBargainService" id="apitWxBargainServicea"/>
+    <!-- 推荐活动 -->
+    <dubbo:reference interface="com.wgb.service.dubbo.wxms.web.ApitWxRecommendService" id="apitWxRecommendService"/>
+
+    <!--要货单-->
+    <dubbo:reference id="apitStorageRequireService" interface="com.wgb.service.dubbo.stms.web.ApitStorageRequireService"
+                     retries="0" lazy="true"/>
+    <!--调货单-->
+    <dubbo:reference id="apitStorageRequisitionService"
+                     interface="com.wgb.service.dubbo.stms.web.ApitStorageRequisitionService" retries="0" lazy="true"/>
+    <!--商品出库-->
+    <dubbo:reference id="apitStorageOutService" interface="com.wgb.service.dubbo.stms.web.ApitStorageOutService"
+                     retries="0" lazy="true"/>
+    <!--商品入库-->
+    <dubbo:reference id="apitStorageInService" interface="com.wgb.service.dubbo.stms.web.ApitStorageInService"
+                     retries="0" lazy="true"/>
+    <!--收发货提醒-->
+    <dubbo:reference id="apitStorageRemindService" interface="com.wgb.service.dubbo.stms.web.ApitStorageRemindService"
+                     retries="0" lazy="true"/>
+
+    <dubbo:reference id="apitAliPayService" interface="com.wgb.service.dubbo.pays.web.ApitAliPayService" retries="0"
+                     lazy="true"/>
+
+    <!-- 用户注册-->
+    <dubbo:reference id="apitRegService" interface="com.wgb.service.dubbo.urms.web.ApitRegService" retries="0"
+                     lazy="true"/>
+
+    <!-- 邮件注册-->
+    <dubbo:reference id="apiEmailService" interface="com.wgb.service.dubbo.sms.web.ApiEmailService" retries="0"
+                     lazy="true"/>
+
+    <!-- 短信注册-->
+    <dubbo:reference id="apiSmsService" interface="com.wgb.service.dubbo.sms.web.ApiSmsService" retries="0"
+                     lazy="true"/>
+
+    <!-- 门店服务-->
+    <dubbo:reference id="apiBranchService" interface="com.wgb.service.dubbo.urms.admin.ApiBranchService" retries="0"
+                     lazy="true"/>
+
+    <!-- 会员导购员比率服务-->
+    <dubbo:reference id="apitMemberAssistantRateService"
+                     interface="com.wgb.service.dubbo.mbms.web.ApitMemberAssistantRateService" retries="0" lazy="true"/>
+
+    <!-- 会员导购员服务-->
+    <dubbo:reference id="apitMemberAssistantService"
+                     interface="com.wgb.service.dubbo.mbms.web.ApitMemberAssistantService" retries="0" lazy="true"/>
+    <!-- 增值服务-->
+    <dubbo:reference id="apitComponentService" interface="com.wgb.service.dubbo.urms.web.ApitComponentService"
+                     retries="0" lazy="true"/>
+
+    <dubbo:reference id="apiBuyCardService" interface="com.wgb.service.dubbo.mbms.admin.ApiBuyCardService " retries="0"
+                     lazy="true"/>
+
+    <dubbo:reference id="apitMemberAssistantCodeService"
+                     interface="com.wgb.service.dubbo.mbms.web.ApitMemberAssistantCodeService" retries="0" lazy="true"/>
+
+    <dubbo:reference id="apitMemberAssistantCodeRecordService"
+                     interface="com.wgb.service.dubbo.mbms.web.ApitMemberAssistantCodeRecordService" retries="0"
+                     lazy="true"/>
+
+    <dubbo:reference id="apitMbAssistantCodeService"
+                     interface="com.wgb.service.dubbo.mbms.web.ApitMbAssistantCodeService" retries="0" lazy="true"/>
+
+    <dubbo:reference id="apitMbAssistantPerformanceService"
+                     interface="com.wgb.service.dubbo.mbms.web.ApitMbAssistantPerformanceService" retries="0"
+                     lazy="true"/>
+
+    <!-- 购买插件服务-->
+    <dubbo:reference id="apitWxShopBuyPlugService" interface="com.wgb.service.dubbo.wxms.web.ApitWxShopBuyPlugService"
+                     retries="0" lazy="true"/>
+
+    <!-- 导购员排行 -->
+    <dubbo:reference interface="com.wgb.service.dubbo.mbms.web.ApitAssistantRankService"
+                     id="ApitAssistantRankServiceImpl" retries="0" lazy="true"/>
+
+    <!-- 会员标签-->
+    <dubbo:reference id="apitMemberTagsService" interface="com.wgb.service.dubbo.mbms.web.ApitMemberTagsService"
+                     retries="0" lazy="true"/>
+
+    <!-- 应用中心-->
+    <dubbo:reference id="apitWxApplicationService" interface="com.wgb.service.dubbo.wxms.web.ApitWxApplicationService"
+                     retries="0" lazy="true"/>
+    <dubbo:reference id="ApitDadaService" interface="com.wgb.service.dubbo.osrms.web.ApitDadaService" retries="0"
+                     lazy="true"/>
+    <dubbo:reference id="apiDadaService" interface="com.wgb.service.dubbo.osrms.admin.ApiDadaService"
+                     retries="0" lazy="true"/>
+
+    <!-- 生成远程服务代理，可以和本地bean一样使用demoService -->
+    <dubbo:reference id="apiConfigService" interface="com.wgb.service.dubbo.dcms.admin.ApiConfigService"
+                     retries="0" lazy="true"/>
+    <!-- 生成远程服务代理，可以和本地bean一样使用demoService -->
+    <dubbo:reference id="apiUserService" interface="com.wgb.service.dubbo.urms.admin.ApiUserService" retries="0"
+                     lazy="true"/>
+    <!-- 生成远程服务代理，可以和本地bean一样使用demoService -->
+    <dubbo:reference id="apiNewestDataService" interface="com.wgb.service.dubbo.dcms.admin.ApiNewestDataService"
+                     retries="0" lazy="true"/>
+    <dubbo:reference id="apiPayTypeService" interface="com.wgb.service.dubbo.pays.admin.ApiPayTypeService"
+                     retries="0" lazy="true"/>
+    <dubbo:reference id="apiSupplierService" interface="com.wgb.service.dubbo.stms.admin.ApiSupplierService"
+                     retries="0" lazy="true"/>
+    <dubbo:reference id="apiNewestDataFromURMS" interface="com.wgb.service.dubbo.urms.admin.ApiNewestDataFromURMS"
+                     retries="0" lazy="true"/>
+    <!-- 生成远程服务代理，可以和本地bean一样使用demoService -->
+    <dubbo:reference id="apiSaleBillService" interface="com.wgb.service.dubbo.dcms.admin.ApiSaleBillService"
+                     retries="0" lazy="true"/>
+    <!-- 生成远程服务代理，可以和本地bean一样使用demoService -->
+    <dubbo:reference id="apiMemberService" interface="com.wgb.service.dubbo.mbms.admin.ApiMemberService"
+                     retries="0" lazy="true"/>
+    <!-- 会员充值规则服务接口 -->
+    <dubbo:reference id="apiRechargeRuleService" interface="com.wgb.service.dubbo.salems.admin.ApiRechargeRuleService"
+                     retries="0" lazy="true"/>
+    <!-- 预付卡服务接口 -->
+    <dubbo:reference id="apiPrepaidcardService" interface="com.wgb.service.dubbo.salems.admin.ApiPrepaidcardService"
+                     retries="0" lazy="true"/>
+    <!-- 生成远程服务代理，可以和本地bean一样使用demoService -->
+    <dubbo:reference id="apiCommodityService" interface="com.wgb.service.dubbo.dcms.admin.ApiCommodityService"
+                     retries="0" lazy="true"/>
+    <!-- 生成远程服务代理，可以和本地bean一样使用demoService -->
+    <dubbo:reference id="apiPurchaseService" interface="com.wgb.service.dubbo.stms.admin.ApiPurchaseService"
+                     retries="0" lazy="true"/>
+    <!-- 生成远程服务代理，可以和本地bean一样使用demoService -->
+    <dubbo:reference id="apiRetailRecordService" interface="com.wgb.service.dubbo.dcms.admin.ApiRetailRecordService"
+                     retries="0" lazy="true"/>
+    <!-- 生成远程服务代理，可以和本地bean一样使用demoService -->
+    <dubbo:reference id="apiStorageService" interface="com.wgb.service.dubbo.stms.admin.ApiStorageService"
+                     retries="0" lazy="true"/>
+
+    <!-- 生成远程服务代理，可以和本地bean一样使用demoService -->
+    <dubbo:reference id="apiCrossBranchRequisitionService"
+                     interface="com.wgb.service.dubbo.dcms.admin.ApiCrossBranchRequisitionService" retries="0"
+                     lazy="true"/>
+    <!-- ACTS系统接口-->
+    <dubbo:reference id="apiActService" interface="com.wgb.service.dubbo.acts.admin.ApiActService" retries="0"
+                     lazy="true"/>
+
+    <!-- 支付接口 - 支付宝支付-->
+    <dubbo:reference id="apiAliPayService" interface="com.wgb.service.dubbo.pays.web.ApiAliPayService" retries="0"
+                     lazy="true"/>
+
+    <!-- 支付接口 - 微信支付-->
+    <dubbo:reference id="apiWxPayService" interface="com.wgb.service.dubbo.pays.web.ApiWxPayService" retries="0"
+                     lazy="true"/>
+
+    <!-- 官网报修 -->
+    <dubbo:reference id="apiRepairService" interface="com.wgb.service.dubbo.cms.admin.ApiRepairService" retries="0"
+                     lazy="true"/>
+
+
+    <dubbo:reference id="apiPromotionService" interface="com.wgb.service.dubbo.salems.admin.ApiPromotionService"
+                     retries="0" lazy="true"/>
+
+    <!-- 服务商加盟 -->
+    <dubbo:reference id="apiJoinApplicationService"
+                     interface="com.wgb.service.dubbo.cms.admin.ApiJoinApplicationService" retries="0" lazy="true"/>
+
+    <!-- 优惠券信息查询 -->
+    <dubbo:reference id="apiSelectCouponService" interface="com.wgb.service.dubbo.salems.admin.ApiSelectCouponService"
+                     retries="0" lazy="true"/>
+
+    <!-- bug接口 -->
+    <dubbo:reference id="apiDeviceBugService" interface="com.wgb.service.dubbo.bugms.admin.ApiDeviceBugService"
+                     retries="0" lazy="true"/>
+
+    <!-- api获取基础数据-->
+    <dubbo:reference id="apiNewestDataFromSTMS" interface="com.wgb.service.dubbo.stms.admin.ApiNewestDataFromSTMS"
+                     retries="0" lazy="true"/>
+
+    <dubbo:reference id="apiNewestDataFromMBMS" interface="com.wgb.service.dubbo.mbms.admin.ApiNewestDataFromMBMS"
+                     retries="0" lazy="true"/>
+
+    <dubbo:reference id="apiNewestDataFromPAYS" interface="com.wgb.service.dubbo.pays.admin.ApiNewestDataFromPAYS"
+                     retries="0" lazy="true"/>
+
+    <dubbo:reference id="apiMeiTuanService" interface="com.wgb.service.dubbo.osrms.admin.ApiMeiTuanService"
+                     retries="0" lazy="true"/>
+    <!-- 会员卡、次卡、预付卡充值-->
+    <dubbo:reference id="apiCardRechargeOrderService"
+                     interface="com.wgb.service.dubbo.dcms.admin.ApiCardRechargeOrderService"
+                     retries="0" lazy="true"/>
+
+    <!-- 版本升级-->
+    <dubbo:reference id="apiVersionService" interface="com.wgb.service.dubbo.urms.admin.ApiVersionService"
+                     retries="0" lazy="true"/>
+    <!--微信端订单查询接口 -->
+
+    <dubbo:reference id="apiWxOrderService" interface="com.wgb.service.dubbo.wxms.admin.ApiOrderService"
+                     retries="0" lazy="true"/>
+
+    <dubbo:reference id="apitRecLeagueService" interface="com.wgb.service.dubbo.stms.web.ApitRecLeagueService"
+                     retries="0" lazy="true"/>
+
+    <dubbo:reference id="apitSettleSupplierService" interface="com.wgb.service.dubbo.stms.web.ApitSettleSupplierService"
+                     retries="0" lazy="true"/>
+
+    <dubbo:reference id="apitSupplierBillsService" interface="com.wgb.service.dubbo.stms.web.ApitSupplierBillsService"
+                     retries="0" lazy="true"/>
+
+    <dubbo:reference id="apitConsignmentBillService"
+                     interface="com.wgb.service.dubbo.stms.web.ApitConsignmentBillService"
+                     retries="0" lazy="true"/>
+
+    <dubbo:reference id="apitLeagueService" interface="com.wgb.service.dubbo.stms.web.ApitLeagueService"
+                     retries="0" lazy="true"/>
+
+    <dubbo:reference id="apitUnionBillService" interface="com.wgb.service.dubbo.stms.web.ApitUnionBillService"
+                     retries="0" lazy="true"/>
+
+    <dubbo:reference id="apitCustomerSettleService" interface="com.wgb.service.dubbo.stms.web.ApitCustomerSettleService"
+                     retries="0" lazy="true"/>
+
+    <dubbo:reference id="apitCheckBillService" interface="com.wgb.service.dubbo.stms.web.ApitCheckBillService"
+                     retries="0" lazy="true"/>
+
+    <dubbo:reference id="apitSupplierService" interface="com.wgb.service.dubbo.stms.web.ApitSupplierService"
+                     retries="0" lazy="true"/>
+
+    <dubbo:reference id="apitCustomerBillSumService"
+                     interface="com.wgb.service.dubbo.stms.web.ApitCustomerBillSumService"
+                     retries="0" lazy="true"/>
+
+    <dubbo:reference id="apitCustomerReceiptService"
+                     interface="com.wgb.service.dubbo.stms.web.ApitCustomerReceiptService"
+                     retries="0" lazy="true"/>
+    <dubbo:reference id="apitPassengerService" interface="com.wgb.service.dubbo.osrms.web.ApitPassengerService"
+                     retries="0" lazy="true"/>
+    <dubbo:reference id="apitBillCountForPassengerFlowService"
+                     interface="com.wgb.service.dubbo.dcms.web.ApitBillCountForPassengerFlowService"
+                     retries="0" lazy="true"/>
+
+    <dubbo:reference id="apiBranchByWxmsService" interface="com.wgb.service.dubbo.wxms.admin.ApiBranchByWxmsService"
+                     retries="0" lazy="true"/>
+    <dubbo:reference id="apiPayService" interface="com.wgb.service.dubbo.pays.admin.ApiPayService" retries="0"/>
+    <dubbo:reference id="apiShopService" interface="com.wgb.service.dubbo.urms.admin.ApiShopService" retries="0"/>
+
+    <!--老板助手销售统计服务-->
+    <dubbo:reference id="apitBossAssistantService" interface="com.wgb.service.dubbo.dcms.web.ApitBossAssistantService"
+                     retries="0" lazy="true"/>
+    <!--商品助手销售统计服务-->
+    <dubbo:reference id="apitGoodsHelpService" interface="com.wgb.service.dubbo.dcms.web.ApitGoodsHelpService"  retries="0" lazy="true"/>
+
+    <!-- -->
+    <dubbo:reference id="apiXcxConfigService" interface="com.wgb.service.dubbo.pays.admin.ApiXcxConfigService"
+                     retries="0" lazy="true"/>
+
+    <dubbo:reference id="apitXCXMemberService" interface="com.wgb.service.dubbo.wxms.web.ApitXCXMemberService"
+                     retries="0" lazy="true"/>
+    <!--老板助手监控设备查询服务-->
+    <dubbo:reference id="apitMonitorPassengerFlowService"
+                     interface="com.wgb.service.dubbo.osrms.web.ApitMonitorPassengerFlowService" retries="0"
+                     lazy="true"/>
+
+    <!--老板助手监控设备查询服务-->
+    <dubbo:reference id="apiPassengerFlowServiceImpl"
+                     interface="com.wgb.service.dubbo.osrms.admin.ApiPassengerFlowService" retries="0" lazy="true"/>
+
+    <!--老板助手监控设备查询服务-->
+    <dubbo:reference id="apiPassengerFlowHourServiceImpl"
+                     interface="com.wgb.service.dubbo.osrms.admin.ApiPassengerFlowHourService" retries="0" lazy="true"/>
+    <dubbo:reference id="apitCollageService" interface="com.wgb.service.dubbo.wxms.web.ApitCollageService" retries="0"
+                     lazy="true"/>
+
+
+    <!--小程序 商户插件 -->
+    <dubbo:reference id="apitShopApplicationService "
+                     interface="com.wgb.service.dubbo.wxms.web.ApitShopApplicationService" retries="0" lazy="true"/>
+    <!--小程序 优惠券 -->
+    <dubbo:reference id="apitXCXCouponService  " interface="com.wgb.service.dubbo.wxms.web.ApitXCXCouponService "
+                     retries="0" lazy="true"/>
+
+    <!-- 小程序首页-->
+    <dubbo:reference id="apitXCXHomeService " interface="com.wgb.service.dubbo.wxms.web.ApitXCXHomeService" retries="0"
+                     lazy="true"/>
+
+    <!-- 小程序会员及相关会员信息-->
+    <dubbo:reference id="ApitXCXMemberRelatedInfoService  "
+                     interface="com.wgb.service.dubbo.wxms.web.ApitXCXMemberRelatedInfoService " retries="0"
+                     lazy="true"/>
+
+    <!--小程序推荐好友 -->
+    <dubbo:reference id="apitXCXRecommendService" interface="com.wgb.service.dubbo.wxms.web.ApitXCXRecommendService"
+                     retries="0" lazy="true"/>
+    <!-- -->
+    <dubbo:reference id="apitLoginMemberService" interface="com.wgb.service.dubbo.wxms.web.ApitXCXMemberService"
+                     retries="0" lazy="true"/>
+    <!-- 小程序订单-->
+    <dubbo:reference id="apitXCXOrderService" interface="com.wgb.service.dubbo.wxms.web.ApitXCXOrderService" retries="0"
+                     lazy="true"/>
+    <!--xcx接口-->
+    <dubbo:reference interface="com.wgb.service.dubbo.wxms.web.ApitAddressService" retries="0" lazy="true"
+                     id="apitXcxAddressService"/>
+    <dubbo:reference interface="com.wgb.service.dubbo.wxms.web.ApitBargainService" retries="0" lazy="true"
+                     id="apitXcxBargainService"/>
+    <dubbo:reference interface="com.wgb.service.dubbo.wxms.web.ApitBranchService" retries="0" lazy="true"
+                     id="apitXcxBranchService"/>
+    <dubbo:reference interface="com.wgb.service.dubbo.wxms.web.ApitCategoryService" retries="0" lazy="true"
+                     id="apitXcxCategoryService"/>
+    <dubbo:reference interface="com.wgb.service.dubbo.wxms.web.ApitCommodityService" retries="0" lazy="true"
+                     id="apitXcxCommodityService"/>
+    <dubbo:reference interface="com.wgb.service.dubbo.wxms.web.ApitTemplateService" retries="0" lazy="true"
+                     id="apitXcxTemplateService"/>
+    <dubbo:reference interface="com.wgb.service.dubbo.wxms.web.ApitWxMemberService" retries="0" lazy="true"
+                     id="apitXcxWxMemberService"/>
+    <dubbo:reference interface="com.wgb.service.dubbo.wxms.web.ApitWxPayService" retries="0" lazy="true"
+                     id="apitXcxWxPayService"/>
+    <dubbo:reference interface="com.wgb.service.dubbo.salems.admin.ApiWeChatCouponService" retries="0" lazy="true"
+                     id="apiXcxWeChatCouponService"/>
+    <dubbo:reference interface="com.wgb.service.dubbo.mbms.admin.ApiMemberGiftService" retries="0" lazy="true"
+                     id="apiMemberGiftService"/>
+    <dubbo:reference interface="com.wgb.service.dubbo.mbms.admin.ApiMemberConfigService" retries="0" lazy="true"
+                     id="apiMemberConfigService"/>
+    <dubbo:reference interface="com.wgb.service.dubbo.mbms.admin.ApiMemberLogsService" retries="0" lazy="true"
+                     id="apiMemberLogsService"/>
+    <dubbo:reference interface="com.wgb.service.dubbo.wxms.web.ApitXcxCodeModelService" retries="0" lazy="true"
+                     id="apitXcxCodeModelService"/>
+
+
+    <!-- 微信商城前后端分离 -->
+    <dubbo:reference interface="com.wgb.service.dubbo.wxms.web.ApitCsAddressService" id="apitCsAddressService"
+                     retries="0" lazy="true"/>
+    <dubbo:reference interface="com.wgb.service.dubbo.wxms.web.ApitCsBargainService" id="apitCsBargainService"
+                     retries="0" lazy="true"/>
+    <dubbo:reference interface="com.wgb.service.dubbo.wxms.web.ApitCsBranchService" id="apitCsBranchService" retries="0"
+                     lazy="true"/>
+    <dubbo:reference interface="com.wgb.service.dubbo.wxms.web.ApitCsCategoryService" id="apitCsCategoryService"
+                     retries="0" lazy="true"/>
+    <dubbo:reference interface="com.wgb.service.dubbo.wxms.web.ApitCsCollageService" id="apitCsCollageService"
+                     retries="0" lazy="true"/>
+    <dubbo:reference interface="com.wgb.service.dubbo.wxms.web.ApitCsCommodityService" id="apitCsCommodityService"
+                     retries="0" lazy="true"/>
+    <dubbo:reference interface="com.wgb.service.dubbo.wxms.web.ApitCsHomeService" id="apitCsHomeService" retries="0"
+                     lazy="true"/>
+
+   <!-- 第三方开放平台-->
+    <dubbo:reference interface="com.wgb.service.dubbo.wxms.web.ApitCsTheThirdPartService" id="apitCsTheThirdPartService"  retries="0" lazy="true"/>
+
+    <dubbo:reference interface="com.wgb.service.dubbo.wxms.web.ApitCsAuthorService" id="apitCsAuthorService"  retries="0" lazy="true"/>
+
+    <!--微信公众号前后端分离-->
+    <dubbo:reference id="ApitCsCouponService" interface="com.wgb.service.dubbo.wxms.web.ApitCsCouponService" retries="0"
+                     lazy="true"/>
+
+    <dubbo:reference interface="com.wgb.service.dubbo.wxms.web.ApitCsDaDaService"
+                     id="ApitCsDaDaService" retries="0" lazy="true"/>
+
+    <dubbo:reference interface="com.wgb.service.dubbo.wxms.web.ApitCsLoginService"
+                     id="ApitCsLoginService" retries="0" lazy="true"/>
+
+    <dubbo:reference interface="com.wgb.service.dubbo.wxms.web.ApitCsMemberService"
+                     id="ApitCsMemberService" retries="0" lazy="true"/>
+
+    <dubbo:reference interface="com.wgb.service.dubbo.wxms.web.ApitCsOrderService"
+                     id="ApitCsOrderService" retries="0" lazy="true"/>
+
+    <dubbo:reference interface="com.wgb.service.dubbo.wxms.web.ApitCsPayService"
+                     id="ApitCsPayService" retries="0" lazy="true"/>
+
+    <dubbo:reference interface="com.wgb.service.dubbo.wxms.web.ApitCsRecommendService"
+                     id="ApitCsRecommendService" retries="0" lazy="true"/>
+
+    <!--  查询商户分析数据-->
+    <dubbo:reference interface="com.wgb.service.dubbo.wxms.web.ApitWxShopAnalysisService"
+                     id="apitWxShopAnalysisService" retries="0" lazy="true"/>
+
+    <!--访问记录-->
+    <dubbo:reference interface="com.wgb.service.dubbo.wxms.web.ApitVisitLogService"
+                     id="apitVisitLogService" retries="0" lazy="true" async="true"/>
+
+
+    <dubbo:reference id="apitScpLoginService" interface="com.wgb.service.dubbo.scpms.web.ApitScpLoginService"
+                     retries="0" lazy="true"/>
+    <!--供应商订单-->
+    <dubbo:reference id="apitSupplierOrderService" interface="com.wgb.service.dubbo.scpms.web.ApitSupplierOrderService"
+                     retries="0" lazy="true"/>
+    <!--小程序订单-->
+    <dubbo:reference id="apitXcxOrderService" interface="com.wgb.service.dubbo.scpms.web.ApitXcxOrderService"
+                     retries="0" lazy="true"/>
+    <!--小程序合作-->
+    <dubbo:reference id="apitXcxCustomerService" interface="com.wgb.service.dubbo.scpms.web.ApitXcxCustomerService"
+                     retries="0" lazy="true"/>
+    <!--合作商户-->
+    <dubbo:reference id="apitScpCustomerService " interface="com.wgb.service.dubbo.scpms.web.ApitScpCustomerService"
+                     retries="0" lazy="true"/>
+
+    <dubbo:reference id="apitScpRegService" interface="com.wgb.service.dubbo.scpms.web.ApitScpRegService"
+                     retries="0" lazy="true"/>
+
+    <dubbo:reference id="apitScpUserService" interface="com.wgb.service.dubbo.scpms.web.ApitScpUserService"
+                     retries="0" lazy="true"/>
+
+    <dubbo:reference id="apitPubScpService" interface="com.wgb.service.dubbo.scpms.web.ApitPubScpService"
+                     retries="0" lazy="true"/>
+
+    <!--供应商商品出库-->
+    <dubbo:reference id="apitSupplierOutService" interface="com.wgb.service.dubbo.stms.web.ApitSupplierOutService"
+                     retries="0" lazy="true"/>
+
+    <!--供应商商品入库-->
+    <dubbo:reference id="apitSupplierInService" interface="com.wgb.service.dubbo.stms.web.ApitSupplierInService"
+                     retries="0" lazy="true"/>
+
+    <!--供应商商品fromDcms-->
+    <dubbo:reference id="apitSCPCommodityFromDcmsService"
+                     interface="com.wgb.service.dubbo.dcms.web.ApitSCPCommodityFromDcmsService" retries="0"
+                     lazy="true"/>
+    <!--供应商商品分类fromDcms-->
+    <dubbo:reference id="apitSCPCategoryFromDcmsService"
+                     interface="com.wgb.service.dubbo.dcms.web.ApitSCPCategoryFromDcmsService" retries="0"
+                     lazy="true"/>
+    <!--供应商商品品牌fromDcms-->
+    <dubbo:reference id="apitSCPBrandFromDcmsService"
+                     interface="com.wgb.service.dubbo.dcms.web.ApitSCPBrandFromDcmsService" retries="0"
+                     lazy="true"/>
+    <!--供应商商品单位fromDcms-->
+    <dubbo:reference id="apitSCPUnitFromDcmsService"
+                     interface="com.wgb.service.dubbo.dcms.web.ApitSCPUnitFromDcmsService" retries="0"
+                     lazy="true"/>
+
+    <!--供应商小程序用户-->
+    <dubbo:reference id="apitScpXcxUserService" interface="com.wgb.service.dubbo.scpms.web.ApitScpXcxUserService"
+                     retries="0" lazy="true"/>
+
+    <dubbo:reference id="apitXcxUserAddressService"
+                     interface="com.wgb.service.dubbo.scpms.web.ApitScpXcxUserAddressService"
+                     retries="0" lazy="true"/>
+
+    <dubbo:reference id="apitSupplierSaleLogsService"
+                     interface="com.wgb.service.dubbo.stms.web.ApitSupplierSaleLogsService"
+                     retries="0" lazy="true"/>
+
+    <dubbo:reference id="apitSupplierStorageService"
+                     interface="com.wgb.service.dubbo.stms.web.ApitSupplierStorageService"
+                     retries="0" lazy="true"/>
+
+    <dubbo:reference id="apitSupplierStorageLogService"
+                     interface="com.wgb.service.dubbo.stms.web.ApitSupplierStorageLogService"
+                     retries="0" lazy="true"/>
+
+    <dubbo:reference id="apitStorageAssitanceService" interface="com.wgb.service.dubbo.stms.web.ApitStorageAssitanceService"
+                     retries="0" lazy="true"/>
+
+    <!-- 查询优惠券 -->
+    <dubbo:reference id="apiWeChatCouponService" interface="com.wgb.service.dubbo.salems.admin.ApiWeChatCouponService"
+                     retries="0"/>
+
+    <dubbo:reference id="apiBossAssistService" interface="com.wgb.service.dubbo.dcms.admin.ApiBossAssistService"
+                     retries="0"/>
+
+    <dubbo:reference id="apitAssistantAchiService" interface="com.wgb.service.dubbo.mbms.web.ApitAssistantAchiService"
+                     retries="0"/>
+
+    <dubbo:reference id="apitActivityService" interface="com.wgb.service.dubbo.salems.web.ApitActivityService"
+                     retries="0"/>
+
+    <dubbo:reference lazy="true" interface="com.wgb.service.dubbo.srvms.web.ApitSrvAuthService" id="apitSrvAuthService"  retries="0"  />
+    <dubbo:reference lazy="true" interface="com.wgb.service.dubbo.srvms.web.ApitDeviceBugService" id="apitDeviceBugService"  retries="0"  />
+    <dubbo:reference lazy="true" interface="com.wgb.service.dubbo.srvms.web.ApitEquipMonitorService" id="apitEquipMonitorService"  retries="0"  />
+    <dubbo:reference lazy="true" interface="com.wgb.service.dubbo.srvms.web.ApitFeedbackService" id="apitFeedbackService"  retries="0"  />
+    <dubbo:reference lazy="true" interface="com.wgb.service.dubbo.srvms.web.ApitHomeService" id="apitSrvHomeService"  retries="0"  />
+    <dubbo:reference lazy="true" interface="com.wgb.service.dubbo.srvms.web.ApitServiceIncomeService" id="apitServiceIncomeService"  retries="0"  />
+    <dubbo:reference lazy="true" interface="com.wgb.service.dubbo.srvms.web.ApitIndustryService" id="apitIndustryService"  retries="0"  />
+    <dubbo:reference lazy="true" interface="com.wgb.service.dubbo.srvms.web.ApitSrvInformationService" id="apitSrvInformationService"  retries="0"  />
+    <dubbo:reference lazy="true" interface="com.wgb.service.dubbo.srvms.web.ApitSrvMessageService" id="apitSrvMessageService"  retries="0"  />
+    <dubbo:reference lazy="true" interface="com.wgb.service.dubbo.srvms.web.ApitGetPwdService" id="apitGetPwdService"  retries="0"  />
+    <dubbo:reference lazy="true" interface="com.wgb.service.dubbo.srvms.web.ApitRoleService" id="apitRoleService"  retries="0"  />
+    <dubbo:reference lazy="true" interface="com.wgb.service.dubbo.srvms.web.ApitServiceBillService" id="apitServiceBillService"  retries="0"  />
+    <dubbo:reference lazy="true" interface="com.wgb.service.dubbo.srvms.web.ApitSrvAssociationShopService" id="apitSrvAssociationShopService"  retries="0"  />
+    <dubbo:reference lazy="true" interface="com.wgb.service.dubbo.srvms.web.ApitSrvUserService" id="apitSrvUserService"  retries="0"  />
+    <dubbo:reference lazy="true" interface="com.wgb.service.dubbo.srvms.web.ApitServiceAddressService" id="apitServiceAddressService"  retries="0"  />
+    <dubbo:reference lazy="true" interface="com.wgb.service.dubbo.srvms.web.ApitExtendService" id="apitExtendService"  retries="0"  />
+    <dubbo:reference lazy="true" interface="com.wgb.service.dubbo.srvms.web.ApitRenewService" id="apitRenewService"  retries="0"  />
+    <dubbo:reference lazy="true" interface="com.wgb.service.dubbo.srvms.web.ApitSrvMenuService" id="apitSrvMenuService"  retries="0"  />
+    <dubbo:reference lazy="true" interface="com.wgb.service.dubbo.srvms.web.ApitSrvShopService" id="apitSrvShopService"  retries="0"  />
+    <dubbo:reference lazy="true" interface="com.wgb.service.dubbo.srvms.web.ApitWorkOrderService" id="apitWorkOrderService"  retries="0"  />
+    <!--中仑学院-->
+    <dubbo:reference lazy="true" interface="com.wgb.service.dubbo.lms.web.ApitUserService" id="apitUserService"  retries="0"  />
+    <dubbo:reference lazy="true" interface="com.wgb.service.dubbo.lms.web.ApitCourseService" id="apitCourseService"  retries="0"  />
+    <dubbo:reference lazy="true" interface="com.wgb.service.dubbo.lms.web.ApitImgService" id="apitImgService"  retries="0"  />
+    <dubbo:reference lazy="true" interface="com.wgb.service.dubbo.lms.web.ApitMessageService" id="apitMessageService"  retries="0"  />
+
+ <!--服装行业规格表-->
+    <dubbo:reference id="apitCommoditySpecService" interface="com.wgb.service.dubbo.dcms.web.ApitCommoditySpecService"
+                     retries="0"/>
+   <!--新版 微信/支付宝支付结果查询 -->
+    <dubbo:reference id="apiMQPayService" interface="com.wgb.service.dubbo.pays.web.ApiMQPayService"
+                     retries="0" lazy="true"/>
+    <!--销售报表统计分析查询 -->
+    <dubbo:reference id="apiSaleInfoDataProvideService" interface="com.wgb.service.dubbo.dwms.ApiSaleInfoDataProvideService"
+                     retries="0" lazy="true"/>
+
+    <dubbo:reference id="apiMemberRechargeService" interface="com.wgb.service.dubbo.mbms.admin.ApiMemberRechargeService"
+                     retries="0" lazy="true"/>
+
+    <!-- 查询短信配置接口 -->
+    <dubbo:reference id="apiWxBranchService" interface="com.wgb.service.dubbo.wxms.admin.ApiBranchService"
+                     retries="0"/>
+</beans>
